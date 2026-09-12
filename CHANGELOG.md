@@ -5,6 +5,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 ## [Não publicado]
 
 ### Adicionado
+- `lib/env.ts`: variáveis de ambiente validadas com Zod na partida do servidor (via `instrumentation.ts`), com mensagens em pt-BR que nunca citam o valor. `AUTH_SECRET` e `AUTH_TRUST_HOST` deixam de ser fixos no código e `APP_URL` passa a existir (T0.4, F18).
 - ESLint 9 em config flat (`eslint-config-next`, `eslint-plugin-security`), Prettier com o plugin do Tailwind e os scripts `lint`, `format`, `format:check` e `typecheck` (T0.3).
 - Regra de lint própria que impede importar o cliente Prisma em arquivo `"use client"` (T0.3).
 - Repositório git inicializado na branch `main`, `.gitignore` revisado (ignora `.env`, bancos locais, `coverage/`, `playwright-report/` e `test-results/`) e remote do GitHub configurado (T0.1).

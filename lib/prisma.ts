@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import { env } from "@/lib/env";
 
 /**
  * Cliente Prisma único por processo. Em desenvolvimento o Next recarrega os
@@ -9,17 +10,13 @@ import { PrismaPg } from "@prisma/adapter-pg";
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function createPrismaClient() {
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) {
-    throw new Error("DATABASE_URL não definida. Copie .env.example para .env antes de iniciar o servidor.");
-  }
-
+  // A conexão já foi validada em lib/env.ts, na partida do servidor.
   return new PrismaClient({
-    adapter: new PrismaPg({ connectionString }),
-    log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
+    adapter: new PrismaPg({ connectionString: env.DATABASE_URL }),
+    log: env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
   });
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+if (env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;

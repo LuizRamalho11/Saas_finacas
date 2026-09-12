@@ -146,7 +146,7 @@ Formato de cada tarefa: **Por quê** · **Arquivos** · **Passos** · **Aceite**
 - **Passos:** instalar ESLint 9 com config flat do Next (`eslint-config-next`) + `typescript-eslint`, `eslint-plugin-security` e regra `no-restricted-imports` impedindo importar `@/lib/prisma` em arquivos `"use client"`; Prettier + `prettier-plugin-tailwindcss`; scripts `lint`, `format`, `typecheck` (`tsc --noEmit`). Opcional: `husky` + `lint-staged` no pre-commit.
 - **Aceite:** `npm run lint` e `npm run typecheck` passam sem erros (corrigir o que aparecer).
 
-#### - [ ] T0.4 — Variáveis de ambiente validadas
+#### - [x] T0.4 — Variáveis de ambiente validadas *(feito em 12/09/2026)*
 - **Por quê:** F18; falhar cedo com mensagem clara.
 - **Arquivos:** `lib/env.ts`, `.env.example`, `auth.ts`.
 - **Passos:** schema Zod separando `server` e `client` (`NEXT_PUBLIC_*`); validar na inicialização; `AUTH_TRUST_HOST` e `APP_URL` vindos do ambiente; nunca acessar `process.env` fora de `lib/env.ts`. Documentar cada variável no `.env.example`.

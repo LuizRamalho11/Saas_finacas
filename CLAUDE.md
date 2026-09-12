@@ -30,7 +30,7 @@ Ainda **não existem** (criados na Fase 0): `test`, `e2e` (T0.5) e CI (T0.6).
 ## Regras não negociáveis
 1. Toda query de negócio filtra pelo dono (`userId`; depois `organizationId`). Edição/exclusão usam `{ id, ownerId }` no `where`.
 2. Tudo exportado de arquivo `"use server"` é endpoint público: autenticar, autorizar e validar **todos** os parâmetros com Zod, com limites numéricos.
-3. Nenhum segredo no código ou no git. Variáveis de ambiente só via `lib/env.ts` (após T0.4).
+3. Nenhum segredo no código ou no git. Variáveis de ambiente só via `lib/env.ts` — o lint barra importá-lo em arquivo `"use client"`.
 4. Nunca editar migration já aplicada. Migration destrutiva exige migration de dados separada, backup e confirmação do Luiz.
 5. Tarefa só termina com typecheck, lint, testes e build verdes.
 6. Um commit por tarefa, Conventional Commits com o ID (`fix(security): T1.3 bloqueia open redirect`).

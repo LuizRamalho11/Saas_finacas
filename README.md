@@ -29,7 +29,12 @@ Login do seed: **luiza.andrade@finora.app** / **finora2026**
 | --- | --- | --- |
 | `DATABASE_URL` | sim | Conexão PostgreSQL. Aponte para o banco local, Neon, Supabase ou qualquer Postgres gerenciado. |
 | `AUTH_SECRET` | sim | Assinatura dos tokens de sessão. Gere com `openssl rand -base64 32`. |
-| `AUTH_TRUST_HOST` | em dev/proxy | Deixa o Auth.js confiar no host da requisição. |
+| `AUTH_TRUST_HOST` | em dev/proxy | Deixa o Auth.js confiar no host da requisição (`true` ou `false`). |
+| `APP_URL` | em produção | URL pública do app, usada em redirecionamentos e e-mails. Em dev, o padrão é `http://localhost:3000`. |
+
+Todas são validadas por `lib/env.ts` quando o servidor sobe: se faltar ou
+estiver malformada, o servidor não inicia e diz qual é o problema. Nenhum outro
+arquivo da aplicação lê `process.env` — importe `env` de `lib/env.ts`.
 
 ### Scripts
 

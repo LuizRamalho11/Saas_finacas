@@ -1,14 +1,14 @@
 import { FlatCompat } from "@eslint/eslintrc";
 import security from "eslint-plugin-security";
 import prettier from "eslint-config-prettier";
-import { noPrismaInClientComponent } from "./eslint-rules/no-prisma-in-client-component.mjs";
+import { noServerModuleInClientComponent } from "./eslint-rules/no-server-module-in-client-component.mjs";
 
 // O eslint-config-next ainda é distribuído no formato antigo; o FlatCompat é a
 // forma documentada pelo Next 15 de usá-lo na configuração flat.
 const compat = new FlatCompat({ baseDirectory: import.meta.dirname });
 
 const finora = {
-  rules: { "no-prisma-in-client-component": noPrismaInClientComponent },
+  rules: { "no-server-module-in-client-component": noServerModuleInClientComponent },
 };
 
 const config = [
@@ -32,7 +32,7 @@ const config = [
   {
     plugins: { finora },
     rules: {
-      "finora/no-prisma-in-client-component": "error",
+      "finora/no-server-module-in-client-component": "error",
 
       // Em TypeScript, ler `objeto[chave]` com uma chave tipada é seguro e
       // comum no projeto (mapas de rótulo, Record<Period, number>). A regra
