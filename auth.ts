@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { openSession, recordFailedLogin } from "@/lib/auth/session-log";
+import { env } from "@/lib/env";
 
 const credentialsSchema = z.object({
   email: z.string().email("Informe um e-mail válido."),
@@ -15,7 +16,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   // nesse fluxo. A tabela Session é mantida pela aplicação (lib/auth/session-log).
   session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
   pages: { signIn: "/login" },
-  trustHost: true,
+  secret: env.AUTH_SECRET,
+  // F18: vinha fixo como `true` no código; agora depende do ambiente.
+  trustHost: env.AUTH_TRUST_HOST,
   providers: [
     Credentials({
       credentials: {

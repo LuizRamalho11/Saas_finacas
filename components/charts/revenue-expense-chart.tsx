@@ -1,15 +1,7 @@
 "use client";
 
 import { useId } from "react";
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ChartTooltip } from "./chart-tooltip";
 import { usePreferences } from "@/components/providers";
 import { formatCompact, formatCurrency, formatDayShort } from "@/lib/format";

@@ -174,12 +174,10 @@ function TransactionRow({
           {tx.categoryLabel}
         </span>
       </TableCell>
-      {!dense && (
-        <TableCell className="whitespace-nowrap text-sm text-muted-foreground">{tx.accountLabel}</TableCell>
-      )}
+      {!dense && <TableCell className="whitespace-nowrap text-sm text-muted-foreground">{tx.accountLabel}</TableCell>}
       <TableCell
         className={cn(
-          "whitespace-nowrap text-right text-sm font-semibold tabular",
+          "tabular whitespace-nowrap text-right text-sm font-semibold",
           income ? "text-success" : "text-foreground",
           tx.status === "canceled" && "line-through",
         )}

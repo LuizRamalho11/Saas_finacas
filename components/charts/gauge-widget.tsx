@@ -46,10 +46,13 @@ export function GaugeWidget({
   };
 
   const [knobX, knobY] = pointAt(clamped, radius);
-  const marker = markerAt === undefined ? null : {
-    inner: pointAt(Math.min(1, Math.max(0, markerAt)), radius - stroke / 2 - 1),
-    outer: pointAt(Math.min(1, Math.max(0, markerAt)), radius + stroke / 2 + 1),
-  };
+  const marker =
+    markerAt === undefined
+      ? null
+      : {
+          inner: pointAt(Math.min(1, Math.max(0, markerAt)), radius - stroke / 2 - 1),
+          outer: pointAt(Math.min(1, Math.max(0, markerAt)), radius + stroke / 2 + 1),
+        };
 
   return (
     <div className={cn("flex flex-col items-center gap-3", className)}>
@@ -101,10 +104,17 @@ export function GaugeWidget({
               strokeLinecap="round"
             />
           ) : null}
-          <circle cx={knobX} cy={knobY} r={5} fill="hsl(var(--surface))" stroke={`hsl(var(${colorVar}))`} strokeWidth={3} />
+          <circle
+            cx={knobX}
+            cy={knobY}
+            r={5}
+            fill="hsl(var(--surface))"
+            stroke={`hsl(var(${colorVar}))`}
+            strokeWidth={3}
+          />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 text-center">
-          <span className="text-2xl font-semibold tabular tracking-tight text-foreground">
+          <span className="tabular text-2xl font-semibold tracking-tight text-foreground">
             {display ?? `${Math.round(clamped * 100)}%`}
           </span>
           <span className="max-w-[7rem] text-[11px] leading-tight text-muted-foreground">{label}</span>

@@ -29,7 +29,12 @@ Login do seed: **luiza.andrade@finora.app** / **finora2026**
 | --- | --- | --- |
 | `DATABASE_URL` | sim | Conexão PostgreSQL. Aponte para o banco local, Neon, Supabase ou qualquer Postgres gerenciado. |
 | `AUTH_SECRET` | sim | Assinatura dos tokens de sessão. Gere com `openssl rand -base64 32`. |
-| `AUTH_TRUST_HOST` | em dev/proxy | Deixa o Auth.js confiar no host da requisição. |
+| `AUTH_TRUST_HOST` | em dev/proxy | Deixa o Auth.js confiar no host da requisição (`true` ou `false`). |
+| `APP_URL` | em produção | URL pública do app, usada em redirecionamentos e e-mails. Em dev, o padrão é `http://localhost:3000`. |
+
+Todas são validadas por `lib/env.ts` quando o servidor sobe: se faltar ou
+estiver malformada, o servidor não inicia e diz qual é o problema. Nenhum outro
+arquivo da aplicação lê `process.env` — importe `env` de `lib/env.ts`.
 
 ### Scripts
 
@@ -41,6 +46,32 @@ Login do seed: **luiza.andrade@finora.app** / **finora2026**
 | `npm run db:reset` | Derruba o schema, reaplica as migrations e roda o seed. |
 | `npm run db:studio` | Abre o Prisma Studio para inspecionar as tabelas. |
 | `npm run build` | `prisma generate` + build de produção. |
+| `npm run lint` | ESLint 9 em todo o projeto; qualquer aviso reprova. |
+| `npm run typecheck` | `tsc --noEmit`. |
+| `npm run format` | Formata com Prettier (`npm run format:check` só confere). |
+| `npm test` | Vitest (unitários + integração com PostgreSQL de verdade). |
+| `npm run e2e` | Playwright (ponta a ponta, com banco e servidor próprios). |
+
+### Integração contínua
+
+O workflow `.github/workflows/ci.yml` roda a cada push na `main` e em todo PR:
+lint e formatação, typecheck, testes, build, ponta a ponta (só nos PRs),
+`npm audit --audit-level=high` e varredura de segredos com gitleaks. O Dependabot
+abre PRs semanais para npm e GitHub Actions.
+
+### Testes
+
+`npm test` roda dois projetos do Vitest: `unit` (sem banco) e `integration`,
+que sobe um PostgreSQL embarcado na porta 55433, aplica as migrations e limpa
+as tabelas entre os testes. `npm run e2e` sobe outro banco (55434) e um Next
+próprio na porta 3100, com diretório de build separado — dá para rodar com o
+`npm run dev` aberto. Nenhum dos dois encosta no banco de desenvolvimento.
+
+Numa máquina nova, antes do primeiro `npm run e2e`:
+
+```bash
+npx playwright install chromium
+```
 
 **Usando um Postgres gerenciado:** troque só a `DATABASE_URL` no `.env` e rode
 `npm run db:migrate && npm run db:seed`. Nada mais muda — nem código, nem

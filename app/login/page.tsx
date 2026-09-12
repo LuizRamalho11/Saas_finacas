@@ -7,7 +7,11 @@ import { ShieldCheck, TrendingUp, Wallet } from "lucide-react";
 export const metadata: Metadata = { title: "Entrar" };
 
 const HIGHLIGHTS = [
-  { icon: TrendingUp, title: "Projeção de caixa em 90 dias", body: "Cenários atualizados a cada conciliação bancária." },
+  {
+    icon: TrendingUp,
+    title: "Projeção de caixa em 90 dias",
+    body: "Cenários atualizados a cada conciliação bancária.",
+  },
   { icon: Wallet, title: "Contas consolidadas", body: "Bancos, cartões e aplicações em uma única visão." },
   { icon: ShieldCheck, title: "Trilha de auditoria", body: "Cada lançamento com origem, responsável e status." },
 ];

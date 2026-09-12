@@ -80,8 +80,7 @@ export const profileSchema = z.object({
 
 /** Formato único de retorno das actions, consumido pelos formulários. */
 export type ActionResult<T = undefined> =
-  | { ok: true; data: T; message?: string }
-  | { ok: false; error: string; fieldErrors?: Record<string, string> };
+  { ok: true; data: T; message?: string } | { ok: false; error: string; fieldErrors?: Record<string, string> };
 
 export function fieldErrorsFrom(error: z.ZodError): Record<string, string> {
   const out: Record<string, string> = {};

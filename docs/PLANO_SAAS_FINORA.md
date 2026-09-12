@@ -142,17 +142,17 @@ Formato de cada tarefa: **Por quê** · **Arquivos** · **Passos** · **Aceite**
 - **Passos:** resumir a stack, os comandos (`dev`, `db:local`, `db:migrate`, `test`, `e2e`, `lint`, `typecheck`), as regras da seção 1 deste plano e o link para este arquivo.
 - **Aceite:** arquivo com no máximo ~80 linhas, objetivo.
 
-#### - [ ] T0.3 — Lint, formatação e typecheck
+#### - [x] T0.3 — Lint, formatação e typecheck *(feito em 12/09/2026)*
 - **Passos:** instalar ESLint 9 com config flat do Next (`eslint-config-next`) + `typescript-eslint`, `eslint-plugin-security` e regra `no-restricted-imports` impedindo importar `@/lib/prisma` em arquivos `"use client"`; Prettier + `prettier-plugin-tailwindcss`; scripts `lint`, `format`, `typecheck` (`tsc --noEmit`). Opcional: `husky` + `lint-staged` no pre-commit.
 - **Aceite:** `npm run lint` e `npm run typecheck` passam sem erros (corrigir o que aparecer).
 
-#### - [ ] T0.4 — Variáveis de ambiente validadas
+#### - [x] T0.4 — Variáveis de ambiente validadas *(feito em 12/09/2026)*
 - **Por quê:** F18; falhar cedo com mensagem clara.
 - **Arquivos:** `lib/env.ts`, `.env.example`, `auth.ts`.
 - **Passos:** schema Zod separando `server` e `client` (`NEXT_PUBLIC_*`); validar na inicialização; `AUTH_TRUST_HOST` e `APP_URL` vindos do ambiente; nunca acessar `process.env` fora de `lib/env.ts`. Documentar cada variável no `.env.example`.
 - **Aceite:** remover `DATABASE_URL` faz o servidor falhar na partida com mensagem legível; `grep -r "process.env" --include=*.ts* app lib components` só encontra `lib/env.ts`.
 
-#### - [ ] T0.5 — Infraestrutura de testes
+#### - [x] T0.5 — Infraestrutura de testes *(feito em 12/09/2026)*
 - **Arquivos:** `vitest.config.ts`, `tests/setup/db.ts`, `tests/factories/*`, `playwright.config.ts`, `e2e/*`.
 - **Passos:**
   1. Vitest com dois projetos: `unit` (sem banco) e `integration` (sobe `embedded-postgres` numa porta própria, roda `prisma migrate deploy`, trunca tabelas entre testes).
@@ -161,7 +161,7 @@ Formato de cada tarefa: **Por quê** · **Arquivos** · **Passos** · **Aceite**
   4. Primeiros testes: `parseAmount`, schemas Zod, isolamento entre dois usuários em `getTransaction`/`updateTransaction`/`deleteTransaction`, E2E de login/logout.
 - **Aceite:** `npm test` e `npm run e2e` rodam do zero numa máquina limpa.
 
-#### - [ ] T0.6 — CI no GitHub Actions
+#### - [x] T0.6 — CI no GitHub Actions *(feito em 12/09/2026; falta abrir o PR de verificação)*
 - **Arquivos:** `.github/workflows/ci.yml`, `.github/dependabot.yml`.
 - **Passos:** jobs `lint`, `typecheck`, `test` (unit + integration), `build`, `e2e` (pode ser só no PR para `main`), `npm audit --audit-level=high`, **gitleaks** (varredura de segredos). Dependabot semanal para npm e GitHub Actions. Cache de `node_modules`.
 - **Aceite:** PR de teste mostra todos os checks verdes.

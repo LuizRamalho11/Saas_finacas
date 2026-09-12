@@ -16,6 +16,7 @@ Uma decisão por arquivo. Para mudar uma decisão, crie um novo ADR que substitu
 | [010](010-camada-de-acoes.md) | Camada de ações e serviços | Aceita |
 | [011](011-leitura-de-dados.md) | Leitura de dados | Aceita |
 | [012](012-cobranca.md) | Provedor de cobrança | Proposta (aguarda decisão) |
+| [013](013-politica-de-vulnerabilidades.md) | Política de vulnerabilidades em dependências | Aceita |
 
 ## Modelo para novos ADRs
 ```markdown

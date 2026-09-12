@@ -6,11 +6,7 @@ const LOCALE_BY_CURRENCY: Record<CurrencyCode, string> = {
   EUR: "de-DE",
 };
 
-export function formatCurrency(
-  value: number,
-  currency: CurrencyCode = "BRL",
-  options: Intl.NumberFormatOptions = {},
-) {
+export function formatCurrency(value: number, currency: CurrencyCode = "BRL", options: Intl.NumberFormatOptions = {}) {
   return new Intl.NumberFormat(LOCALE_BY_CURRENCY[currency], {
     style: "currency",
     currency,

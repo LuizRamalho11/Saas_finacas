@@ -2,7 +2,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 /** Esqueleto que imita a silhueta de um gráfico, não um bloco cinza qualquer. */
-export function ChartSkeleton({ height, bars = 12, className }: { height?: number; bars?: number; className?: string }) {
+export function ChartSkeleton({
+  height,
+  bars = 12,
+  className,
+}: {
+  height?: number;
+  bars?: number;
+  className?: string;
+}) {
   const heights = [42, 68, 55, 80, 62, 91, 48, 74, 58, 86, 66, 52, 78, 60];
 
   return (

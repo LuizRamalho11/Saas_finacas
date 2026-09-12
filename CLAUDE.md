@@ -15,9 +15,14 @@ Prisma 7 (driver adapter `pg`) · PostgreSQL · Auth.js v5 (migração para Bett
 | `npm run db:seed` | Usuário demo + ~1.650 lançamentos |
 | `npm run dev` | http://localhost:3000 |
 | `npm run build` | `prisma generate` + build de produção |
-| `npx tsc --noEmit` | Typecheck (vira `npm run typecheck` na T0.3) |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run lint` | ESLint 9 (config flat). Qualquer aviso já reprova. |
+| `npm run format` | Prettier no projeto (`format:check` só confere). |
+| `npm test` | Vitest: projeto `unit` (sem banco) e `integration` (Postgres próprio na 55433). |
+| `npm run e2e` | Playwright: sobe banco e servidor próprios na 3100. |
 
-Ainda **não existem** (criados na Fase 0): `npm run lint` funcional, `typecheck`, `test`, `e2e`, CI.
+O CI (GitHub Actions) roda lint, formatação, typecheck, testes, build, E2E (nos PRs),
+`npm audit --audit-level=high` e gitleaks. Nenhuma falha alta fica em aberto (ADR-013).
 
 ## Mapa do código
 - `auth.ts`, `middleware.ts`, `lib/auth/*` — autenticação, guard `requireUser()`, sessões e histórico
@@ -28,7 +33,7 @@ Ainda **não existem** (criados na Fase 0): `npm run lint` funcional, `typecheck
 ## Regras não negociáveis
 1. Toda query de negócio filtra pelo dono (`userId`; depois `organizationId`). Edição/exclusão usam `{ id, ownerId }` no `where`.
 2. Tudo exportado de arquivo `"use server"` é endpoint público: autenticar, autorizar e validar **todos** os parâmetros com Zod, com limites numéricos.
-3. Nenhum segredo no código ou no git. Variáveis de ambiente só via `lib/env.ts` (após T0.4).
+3. Nenhum segredo no código ou no git. Variáveis de ambiente só via `lib/env.ts` — o lint barra importá-lo em arquivo `"use client"`.
 4. Nunca editar migration já aplicada. Migration destrutiva exige migration de dados separada, backup e confirmação do Luiz.
 5. Tarefa só termina com typecheck, lint, testes e build verdes.
 6. Um commit por tarefa, Conventional Commits com o ID (`fix(security): T1.3 bloqueia open redirect`).

@@ -18,12 +18,7 @@ export function ThemeToggle() {
   const label = mounted ? (isDark ? "Ativar tema claro" : "Ativar tema escuro") : "Alternar tema";
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={() => setTheme(isDark ? "light" : "dark")}
-      aria-label={label}
-    >
+    <Button variant="ghost" size="icon" onClick={() => setTheme(isDark ? "light" : "dark")} aria-label={label}>
       {/* Antes de montar não sabemos o tema: renderiza neutro para não piscar */}
       {mounted && !isDark ? <Moon aria-hidden /> : <Sun aria-hidden />}
     </Button>

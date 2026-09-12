@@ -8,10 +8,7 @@ export async function requestFingerprint() {
     const headerList = await headers();
     const forwarded = headerList.get("x-forwarded-for");
     const ipAddress =
-      forwarded?.split(",")[0]?.trim() ||
-      headerList.get("x-real-ip") ||
-      headerList.get("cf-connecting-ip") ||
-      null;
+      forwarded?.split(",")[0]?.trim() || headerList.get("x-real-ip") || headerList.get("cf-connecting-ip") || null;
     return { ipAddress, userAgent: headerList.get("user-agent") };
   } catch {
     return { ipAddress: null, userAgent: null };

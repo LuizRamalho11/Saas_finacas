@@ -28,12 +28,7 @@ interface DeleteTransactionDialogProps {
  * Exclusão em duas etapas: confirmação explícita e, depois, uma janela de
  * desfazer no toast — a linha é recriada com os mesmos dados se o usuário voltar atrás.
  */
-export function DeleteTransactionDialog({
-  transaction,
-  open,
-  onOpenChange,
-  onDeleted,
-}: DeleteTransactionDialogProps) {
+export function DeleteTransactionDialog({ transaction, open, onOpenChange, onDeleted }: DeleteTransactionDialogProps) {
   const router = useRouter();
   const { currency } = usePreferences();
   const [deleting, setDeleting] = React.useState(false);

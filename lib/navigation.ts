@@ -1,11 +1,4 @@
-import {
-  ArrowLeftRight,
-  BarChart3,
-  LayoutDashboard,
-  Settings,
-  Waves,
-  type LucideIcon,
-} from "lucide-react";
+import { ArrowLeftRight, BarChart3, LayoutDashboard, Settings, Waves, type LucideIcon } from "lucide-react";
 
 export interface NavItem {
   href: string;

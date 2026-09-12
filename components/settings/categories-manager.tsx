@@ -100,24 +100,13 @@ export function CategoriesManager() {
                 onEdit={openEdit}
                 onDelete={setPendingDelete}
               />
-              <Group
-                title="Saídas"
-                items={expense}
-                currency={currency}
-                onEdit={openEdit}
-                onDelete={setPendingDelete}
-              />
+              <Group title="Saídas" items={expense} currency={currency} onEdit={openEdit} onDelete={setPendingDelete} />
             </>
           )}
         </CardContent>
       </Card>
 
-      <CategoryForm
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        category={editing}
-        onSaved={refresh}
-      />
+      <CategoryForm open={formOpen} onOpenChange={setFormOpen} category={editing} onSaved={refresh} />
 
       <DeleteCategoryDialog
         category={pendingDelete}
@@ -165,7 +154,12 @@ function Group({
               {category.type === "income" ? "Entrada" : "Saída"}
             </Badge>
             <div className="flex gap-1">
-              <Button variant="ghost" size="icon" onClick={() => onEdit(category)} aria-label={`Editar ${category.name}`}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => onEdit(category)}
+                aria-label={`Editar ${category.name}`}
+              >
                 <Pencil aria-hidden />
               </Button>
               <Button

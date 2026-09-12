@@ -28,13 +28,8 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
       <div className="aurora min-h-screen bg-canvas">
         <Sidebar />
         <div className="relative z-10 md:pl-[72px] xl:pl-64">
-          <Topbar
-            accounts={accounts.map((account) => ({ id: account.id, label: account.label }))}
-            profile={profile}
-          />
-          <main className="mx-auto w-full max-w-[1440px] space-y-6 px-4 pb-24 pt-6 sm:px-6 md:pb-10">
-            {children}
-          </main>
+          <Topbar accounts={accounts.map((account) => ({ id: account.id, label: account.label }))} profile={profile} />
+          <main className="mx-auto w-full max-w-[1440px] space-y-6 px-4 pb-24 pt-6 sm:px-6 md:pb-10">{children}</main>
         </div>
         <MobileTabbar />
       </div>

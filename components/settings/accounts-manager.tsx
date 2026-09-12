@@ -105,7 +105,7 @@ export function AccountsManager() {
                     className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-surface-raised/50 px-4 py-3"
                   >
                     <span
-                      className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand/12 text-brand"
+                      className="bg-brand/12 flex size-9 shrink-0 items-center justify-center rounded-lg text-brand"
                       aria-hidden
                     >
                       <Icon className="size-4" />
@@ -114,13 +114,13 @@ export function AccountsManager() {
                       <p className="truncate text-sm font-medium text-foreground">{account.name}</p>
                       <p className="truncate text-xs text-muted-foreground">
                         {labelFor(account.type)}
-                        {account.institution ? ` · ${account.institution}` : ""} · {account.transactionCount}{" "}
-                        lançamento{account.transactionCount === 1 ? "" : "s"}
+                        {account.institution ? ` · ${account.institution}` : ""} · {account.transactionCount} lançamento
+                        {account.transactionCount === 1 ? "" : "s"}
                       </p>
                     </div>
                     <span
                       className={cn(
-                        "text-sm font-semibold tabular",
+                        "tabular text-sm font-semibold",
                         account.balance < 0 ? "text-danger" : "text-foreground",
                       )}
                     >
@@ -153,7 +153,7 @@ export function AccountsManager() {
               })}
               <div className="flex items-center justify-between border-t border-border pt-3 text-sm">
                 <span className="text-muted-foreground">Saldo consolidado</span>
-                <span className="font-semibold tabular text-foreground">
+                <span className="tabular font-semibold text-foreground">
                   {formatCurrency(totalBalance, currency, { maximumFractionDigits: 0 })}
                 </span>
               </div>

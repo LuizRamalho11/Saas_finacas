@@ -29,9 +29,7 @@ export function SettingsNav() {
                 className={cn(
                   "inline-flex items-center gap-2 whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium transition-colors",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                  active
-                    ? "bg-surface text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground",
+                  active ? "bg-surface text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 <Icon className="size-3.5" aria-hidden />

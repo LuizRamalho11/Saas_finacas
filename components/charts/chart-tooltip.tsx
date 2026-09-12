@@ -46,11 +46,13 @@ export function ChartTooltip({
               />
               {entry.name}
             </span>
-            <span className="font-semibold tabular text-foreground">{formatValue(Number(entry.value))}</span>
+            <span className="tabular font-semibold text-foreground">{formatValue(Number(entry.value))}</span>
           </li>
         ))}
       </ul>
-      {footer ? <div className="mt-2 border-t border-border pt-2 text-xs text-muted-foreground">{footer(rows)}</div> : null}
+      {footer ? (
+        <div className="mt-2 border-t border-border pt-2 text-xs text-muted-foreground">{footer(rows)}</div>
+      ) : null}
     </div>
   );
 }

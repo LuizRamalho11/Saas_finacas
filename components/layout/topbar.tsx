@@ -47,7 +47,10 @@ export function Topbar({ accounts, profile }: TopbarProps) {
 
         <label className="relative hidden lg:block">
           <span className="sr-only">Buscar transações</span>
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle" aria-hidden />
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle"
+            aria-hidden
+          />
           <Input placeholder="Buscar lançamento, cliente…" className="w-56 pl-9 xl:w-64" />
         </label>
 
@@ -80,7 +83,12 @@ export function Topbar({ accounts, profile }: TopbarProps) {
           </SelectContent>
         </Select>
 
-        <Button variant="ghost" size="icon" className="relative hidden sm:inline-flex" aria-label="Notificações (3 não lidas)">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative hidden sm:inline-flex"
+          aria-label="Notificações (3 não lidas)"
+        >
           <Bell aria-hidden />
           <span className="absolute right-2 top-2 size-1.5 rounded-full bg-coral" aria-hidden />
         </Button>

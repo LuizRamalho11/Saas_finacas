@@ -56,7 +56,10 @@ export function LoginForm() {
         <div className="space-y-1.5">
           <Label htmlFor="email">E-mail corporativo</Label>
           <div className="relative">
-            <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle" aria-hidden />
+            <Mail
+              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle"
+              aria-hidden
+            />
             <Input
               id="email"
               type="email"
@@ -82,7 +85,10 @@ export function LoginForm() {
             </button>
           </div>
           <div className="relative">
-            <LockKeyhole className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle" aria-hidden />
+            <LockKeyhole
+              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle"
+              aria-hidden
+            />
             <Input
               id="password"
               type="password"
