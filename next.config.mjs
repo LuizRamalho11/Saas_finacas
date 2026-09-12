@@ -44,6 +44,11 @@ const nextConfig = {
   // O servidor de E2E usa um diretório de build separado para não disputar o
   // `.next` com o `npm run dev` que você deixa aberto.
   distDir: process.env.NEXT_DIST_DIR || ".next",
+  experimental: {
+    // Teto do corpo de uma Server Action: uma importação de 5.000 linhas cabe
+    // com folga, e arquivos maiores param antes de virar trabalho do servidor.
+    serverActions: { bodySizeLimit: "2mb" },
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

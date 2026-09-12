@@ -9,6 +9,7 @@ import { AppError } from "@/lib/server/errors";
 import { idSchema, transactionFilterSchema } from "@/lib/server/schemas";
 import { fieldErrorsFrom, transactionSchema } from "@/lib/validation";
 import { transactionWhereFor } from "@/lib/actions/query-helpers";
+import { buildCsv } from "@/lib/csv";
 import type { Transaction } from "@/types";
 
 const AFFECTED_PATHS = ["/dashboard", "/transactions", "/cash-flow", "/reports"];
@@ -205,19 +206,16 @@ const importRowsSchema = z
   .min(1, "Nenhuma linha para importar.")
   .max(MAX_IMPORT_ROWS, `A importação aceita no máximo ${MAX_IMPORT_ROWS} linhas por arquivo.`);
 
-const previewRowsSchema = z
-  .array(importRowSchema.extend({ categoryId: idSchema, accountId: idSchema, amountValue: z.number() }))
-  .min(1, "Nenhuma linha válida para importar.")
-  .max(MAX_IMPORT_ROWS, `A importação aceita no máximo ${MAX_IMPORT_ROWS} linhas por arquivo.`);
-
 /**
- * Valida as linhas do CSV contra as categorias e contas do usuário, resolvendo
- * os nomes para ids. Nada é gravado aqui — o usuário ainda vai confirmar.
+ * Resolve as linhas do CSV contra as categorias e contas do usuário.
+ *
+ * É a única fonte de verdade da importação: a pré-visualização e a confirmação
+ * chamam exatamente esta função, com as mesmas linhas cruas. Assim o cliente não
+ * tem como mandar um id, um valor ou um tipo diferente do que foi conferido (F06).
  */
-export const previewImport = defineAction({
-  name: "previewImport",
-  input: importRowsSchema,
-  async handler({ input: rows, user }): Promise<ImportPreview> {
+async function resolveImportRows(userId: string, rows: ImportRow[]): Promise<ImportPreview> {
+  const user = { id: userId };
+  {
     const [categories, accounts] = await Promise.all([
       prisma.category.findMany({ where: { userId: user.id }, select: { id: true, name: true, type: true } }),
       prisma.account.findMany({ where: { userId: user.id, archived: false }, select: { id: true, name: true } }),
@@ -292,44 +290,56 @@ export const previewImport = defineAction({
     });
 
     return preview;
+  }
+}
+
+/** Confere o arquivo e mostra o que entraria. Nada é gravado aqui. */
+export const previewImport = defineAction({
+  name: "previewImport",
+  input: importRowsSchema,
+  async handler({ input: rows, user }): Promise<ImportPreview> {
+    return resolveImportRows(user.id, rows);
   },
 });
 
+/**
+ * Grava a importação.
+ *
+ * Recebe as mesmas linhas cruas da pré-visualização e refaz toda a validação no
+ * servidor: valor, data, tipo, status, posse da categoria e da conta, e a
+ * coerência entre tipo do lançamento e tipo da categoria. O que o cliente diz
+ * ter conferido é ignorado (F06).
+ */
 export const confirmImport = defineAction({
   name: "confirmImport",
-  input: previewRowsSchema,
+  input: importRowsSchema,
   async handler({ input: rows, user }) {
-    // Reconferimos a posse: os ids vieram do cliente e não são confiáveis.
-    const [categoryIds, accountIds] = await Promise.all([
-      prisma.category.findMany({ where: { userId: user.id }, select: { id: true } }),
-      prisma.account.findMany({ where: { userId: user.id }, select: { id: true } }),
-    ]);
-    const validCategories = new Set(categoryIds.map((c) => c.id));
-    const validAccounts = new Set(accountIds.map((a) => a.id));
+    const resolved = await resolveImportRows(user.id, rows);
 
-    const data = rows
-      .filter((row) => validCategories.has(row.categoryId) && validAccounts.has(row.accountId))
-      .map((row) => ({
-        userId: user.id,
-        accountId: row.accountId,
-        categoryId: row.categoryId,
-        description: row.description.trim(),
-        amount: new Prisma.Decimal(row.amountValue.toFixed(2)),
-        type: row.type,
-        status: row.status && ["pending", "completed", "canceled"].includes(row.status) ? row.status : "completed",
-        date: new Date(`${row.date}T12:00:00.000Z`),
-        notes: "Importado via CSV",
-      }));
-
-    if (!data.length) {
+    if (!resolved.valid.length) {
       throw new AppError("DADOS_INVALIDOS", { message: "Nenhuma linha pôde ser importada." });
     }
 
-    const result = await prisma.transaction.createMany({ data });
+    const data = resolved.valid.map((row) => ({
+      userId: user.id,
+      accountId: row.accountId,
+      categoryId: row.categoryId,
+      description: row.description.trim(),
+      amount: new Prisma.Decimal(row.amountValue.toFixed(2)),
+      type: row.type,
+      status: row.status && ["pending", "completed", "canceled"].includes(row.status) ? row.status : "completed",
+      date: new Date(`${row.date}T12:00:00.000Z`),
+      notes: "Importado via CSV",
+    }));
+
+    // Tudo ou nada: meia importação deixaria o extrato do usuário inconsistente.
+    const [result] = await prisma.$transaction([prisma.transaction.createMany({ data })]);
+
     revalidateAll();
-    return { count: result.count };
+    return { count: result.count, ignored: resolved.invalid.length };
   },
-  message: ({ count }) => `${count} transações importadas.`,
+  message: ({ count, ignored }) =>
+    ignored > 0 ? `${count} transações importadas; ${ignored} linha(s) ignoradas.` : `${count} transações importadas.`,
 });
 
 /**
@@ -351,7 +361,6 @@ export const exportTransactionsCsv = defineAction({
       take: 5000,
     });
 
-    const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
     const header = [
       "Data",
       "Descrição",
@@ -364,21 +373,24 @@ export const exportTransactionsCsv = defineAction({
       "Método",
       "Observações",
     ];
-    const lines = rows.map((row) =>
-      [
+
+    // `buildCsv` escapa aspas e neutraliza célula que começa com =, +, - ou @.
+    const csv = buildCsv(
+      header,
+      rows.map((row) => [
         row.date.toISOString().slice(0, 10),
-        escape(row.description),
-        escape(row.counterparty ?? ""),
-        escape(row.category.name),
-        escape(row.account.name),
+        row.description,
+        row.counterparty ?? "",
+        row.category.name,
+        row.account.name,
         row.type === "income" ? "entrada" : "saída",
         row.status,
         Number(row.amount).toFixed(2).replace(".", ","),
-        escape(row.method ?? ""),
-        escape(row.notes ?? ""),
-      ].join(";"),
+        row.method ?? "",
+        row.notes ?? "",
+      ]),
     );
 
-    return { csv: [header.join(";"), ...lines].join("\n"), count: rows.length };
+    return { csv, count: rows.length };
   },
 });

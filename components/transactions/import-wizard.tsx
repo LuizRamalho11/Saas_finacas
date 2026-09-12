@@ -83,6 +83,7 @@ export function ImportWizard() {
   const { currency } = usePreferences();
   const [fileName, setFileName] = React.useState<string | null>(null);
   const [preview, setPreview] = React.useState<ImportPreview | null>(null);
+  const [rawRows, setRawRows] = React.useState<ImportRow[]>([]);
   const [parsing, setParsing] = React.useState(false);
   const [importing, setImporting] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
@@ -90,6 +91,7 @@ export function ImportWizard() {
   async function handleFile(file: File) {
     setParsing(true);
     setPreview(null);
+    setRawRows([]);
     setFileName(file.name);
 
     try {
@@ -118,6 +120,9 @@ export function ImportWizard() {
         status: indexFor("status") >= 0 ? cells[indexFor("status")] : undefined,
       }));
 
+      // Guardamos as linhas cruas: a confirmação manda exatamente estas, e o
+      // servidor refaz toda a validação por conta própria (T1.6).
+      setRawRows(parsedRows);
       const result = await previewImport(parsedRows);
       setParsing(false);
 
@@ -135,9 +140,9 @@ export function ImportWizard() {
   }
 
   async function handleConfirm() {
-    if (!preview?.valid.length) return;
+    if (!preview?.valid.length || !rawRows.length) return;
     setImporting(true);
-    const result = await confirmImport(preview.valid);
+    const result = await confirmImport(rawRows);
     setImporting(false);
 
     if (!result.ok) {

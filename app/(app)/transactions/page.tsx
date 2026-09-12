@@ -131,8 +131,8 @@ export default function TransactionsPage() {
       return;
     }
 
-    // BOM para o Excel abrir os acentos corretamente
-    const blob = new Blob([`﻿${response.data.csv}`], { type: "text/csv;charset=utf-8;" });
+    // O BOM e o escape das células vêm prontos do servidor (lib/csv.ts).
+    const blob = new Blob([response.data.csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;

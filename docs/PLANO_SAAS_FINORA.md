@@ -216,7 +216,7 @@ Formato de cada tarefa: **Por quê** · **Arquivos** · **Passos** · **Aceite**
 - **Passos:** `poweredByHeader: false`; `headers()` com `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload` (só em produção), `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()`, `X-Frame-Options: DENY`, `Cross-Origin-Opener-Policy: same-origin`. CSP completa com nonce fica na T5.1; aqui, uma CSP inicial em modo `Content-Security-Policy-Report-Only`.
 - **Aceite:** `curl -I` mostra os cabeçalhos; nenhuma quebra visual (tema, gráficos).
 
-#### - [ ] T1.6 — Importação e exportação de CSV blindadas
+#### - [x] T1.6 — Importação e exportação de CSV blindadas *(feito em 12/09/2026; deduplicação fica na T4.7, como previsto)*
 - **Por quê:** F06, F07.
 - **Arquivos:** `lib/actions/transactions.ts`, `lib/csv.ts`.
 - **Passos:**

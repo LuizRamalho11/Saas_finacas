@@ -5,6 +5,8 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 ## [Não publicado]
 
 ### Segurança
+- Importação de CSV: a confirmação recebe as linhas cruas e o servidor refaz toda a validação (valor, data, tipo, status, posse da categoria e da conta), em vez de confiar no que o cliente diz ter conferido. Teto de 5.000 linhas e 2 MB por importação, gravação em transação única (T1.6, F06).
+- Exportação de CSV: célula que começa com `=`, `+`, `-`, `@`, tabulação ou retorno de carro é neutralizada com apóstrofo, então uma descrição maliciosa não vira fórmula ao abrir a planilha; o BOM passou a ser gerado no servidor (T1.6, F07).
 - Cabeçalhos de segurança em todas as respostas: HSTS (só em produção), `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy` e `Cross-Origin-Opener-Policy`; `X-Powered-By` deixou de ser enviado. A CSP entra em modo relatório, com a versão bloqueante por nonce prevista para a T5.1 (T1.5, F08).
 - Login com rate limit (5/min por IP, 10/15 min por e-mail), bloqueio progressivo da conta (15 min, 1 h, 24 h a partir da 10ª falha seguida) e tempo de resposta igual para e-mail inexistente e senha errada (T1.4, F03/F04).
 - O IP do histórico de acesso e do rate limit deixa de sair de um cabeçalho que o cliente controla: só é aceito o proxy declarado em `TRUSTED_PROXY` (T1.4, F17).
