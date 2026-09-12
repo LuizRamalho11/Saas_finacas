@@ -161,7 +161,7 @@ Formato de cada tarefa: **Por quê** · **Arquivos** · **Passos** · **Aceite**
   4. Primeiros testes: `parseAmount`, schemas Zod, isolamento entre dois usuários em `getTransaction`/`updateTransaction`/`deleteTransaction`, E2E de login/logout.
 - **Aceite:** `npm test` e `npm run e2e` rodam do zero numa máquina limpa.
 
-#### - [ ] T0.6 — CI no GitHub Actions
+#### - [x] T0.6 — CI no GitHub Actions *(feito em 12/09/2026; falta abrir o PR de verificação)*
 - **Arquivos:** `.github/workflows/ci.yml`, `.github/dependabot.yml`.
 - **Passos:** jobs `lint`, `typecheck`, `test` (unit + integration), `build`, `e2e` (pode ser só no PR para `main`), `npm audit --audit-level=high`, **gitleaks** (varredura de segredos). Dependabot semanal para npm e GitHub Actions. Cache de `node_modules`.
 - **Aceite:** PR de teste mostra todos os checks verdes.

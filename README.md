@@ -52,6 +52,13 @@ arquivo da aplicação lê `process.env` — importe `env` de `lib/env.ts`.
 | `npm test` | Vitest (unitários + integração com PostgreSQL de verdade). |
 | `npm run e2e` | Playwright (ponta a ponta, com banco e servidor próprios). |
 
+### Integração contínua
+
+O workflow `.github/workflows/ci.yml` roda a cada push na `main` e em todo PR:
+lint e formatação, typecheck, testes, build, ponta a ponta (só nos PRs),
+`npm audit --audit-level=high` e varredura de segredos com gitleaks. O Dependabot
+abre PRs semanais para npm e GitHub Actions.
+
 ### Testes
 
 `npm test` roda dois projetos do Vitest: `unit` (sem banco) e `integration`,
