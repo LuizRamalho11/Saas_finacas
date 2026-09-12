@@ -1,10 +1,18 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { prisma } from "@/lib/prisma";
+import { verifyCredentials, type CredentialFailure } from "@/lib/auth/credentials";
 import { openSession, recordFailedLogin } from "@/lib/auth/session-log";
+import { clientIp } from "@/lib/server/client-ip";
 import { env } from "@/lib/env";
+
+/** Motivo registrado no histórico de acesso. O usuário nunca vê este texto. */
+const FAILURE_REASON: Record<CredentialFailure, string> = {
+  credenciais_invalidas: "Senha incorreta",
+  usuario_inexistente: "Usuário inexistente",
+  bloqueado: "Conta bloqueada por tentativas seguidas",
+  limite_excedido: "Limite de tentativas excedido",
+};
 
 const credentialsSchema = z.object({
   email: z.string().email("Informe um e-mail válido."),
@@ -32,23 +40,24 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         if (!parsed.success) return null;
 
         const email = parsed.data.email.toLowerCase().trim();
-        const user = await prisma.user.findUnique({ where: { email } });
 
-        if (!user) {
-          await recordFailedLogin(email, "Usuário inexistente");
+        // Rate limit, bloqueio progressivo e tempo constante moram aqui, e não
+        // na Server Action: esta rota também é chamável direto (T1.4).
+        const result = await verifyCredentials({
+          email,
+          password: parsed.data.password,
+          ip: await clientIp(),
+        });
+
+        if (!result.ok) {
+          await recordFailedLogin(email, FAILURE_REASON[result.reason], result.userId);
           return null;
         }
 
-        const valid = await bcrypt.compare(parsed.data.password, user.passwordHash);
-        if (!valid) {
-          await recordFailedLogin(email, "Senha incorreta", user.id);
-          return null;
-        }
-
-        const sessionId = await openSession(user.id, user.email);
+        const sessionId = await openSession(result.user.id, result.user.email);
 
         // Nunca devolvemos passwordHash: só o que o token precisa carregar.
-        return { id: user.id, name: user.name, email: user.email, sessionId };
+        return { id: result.user.id, name: result.user.name, email: result.user.email, sessionId };
       },
     }),
   ],

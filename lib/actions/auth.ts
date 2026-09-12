@@ -5,7 +5,9 @@ import { AuthError } from "next-auth";
 import { z } from "zod";
 import { signIn, signOut } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { isLoginBlocked } from "@/lib/auth/credentials";
 import { closeSession, expireStaleSessions } from "@/lib/auth/session-log";
+import { clientIp } from "@/lib/server/client-ip";
 import { defineAction, definePublicAction, defineQuery } from "@/lib/server/action";
 import { AppError } from "@/lib/server/errors";
 import { limitSchema } from "@/lib/server/schemas";
@@ -31,7 +33,13 @@ export const loginAction = definePublicAction({
     } catch (error) {
       if (error instanceof AuthError) {
         // A tentativa já foi registrada em LoginHistory dentro do authorize().
-        // A mensagem é a mesma para e-mail inexistente e senha errada, de propósito.
+        // Quando o limite estourou, avisamos — sem isso o usuário legítimo fica
+        // tentando senha certa e levando "senha incorreta".
+        if (await isLoginBlocked(input.email, await clientIp())) {
+          throw new AppError("LIMITE_EXCEDIDO", { cause: error });
+        }
+
+        // Mesma mensagem para e-mail inexistente e senha errada, de propósito.
         throw new AppError("NAO_AUTENTICADO", { message: "E-mail ou senha incorretos.", cause: error });
       }
       throw error;

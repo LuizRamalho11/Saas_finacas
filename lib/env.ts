@@ -36,6 +36,19 @@ const serverSchema = z.object({
   /** Confiar no cabeçalho Host da requisição (necessário atrás de proxy). */
   AUTH_TRUST_HOST: booleanFromEnv,
 
+  /**
+   * Como descobrir o IP real de quem chama (F17).
+   *
+   * "none"     — sem proxy confiável: nenhum cabeçalho é aceito (padrão).
+   * "vercel"   — usa os cabeçalhos que a Vercel escreve e o cliente não controla.
+   * "last-hop" — atrás de proxy próprio: o último salto de X-Forwarded-For.
+   */
+  TRUSTED_PROXY: z.enum(["none", "vercel", "last-hop"]).default("none"),
+
+  /** Rate limit distribuído (ADR-005). Sem estas duas, cai para memória. */
+  UPSTASH_REDIS_REST_URL: z.url({ error: "Informe a URL REST do Upstash." }).optional(),
+  UPSTASH_REDIS_REST_TOKEN: z.string().min(10, "Token do Upstash muito curto.").optional(),
+
   /** URL pública da aplicação, usada em redirecionamentos e e-mails. */
   APP_URL: z.url({ error: "Informe uma URL completa (https://…)." }).default("http://localhost:3000"),
 });

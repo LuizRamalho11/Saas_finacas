@@ -18,6 +18,10 @@ model User {
   company      String   @default("Finora Tecnologia Ltda.")
   currency     String   @default("BRL")
   timezone     String   @default("America/Sao_Paulo")
+  /// Falhas de login seguidas. Zera no primeiro acerto.
+  failedLoginCount Int      @default(0)
+  /// Bloqueio temporário após falhas demais (15 min, 1 h, 24 h).
+  lockedUntil      DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

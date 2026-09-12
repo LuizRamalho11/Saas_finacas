@@ -1,15 +1,19 @@
 import "server-only";
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { clientIp } from "@/lib/server/client-ip";
 
-/** Extrai IP e user-agent da requisição corrente, tolerando ambientes sem proxy. */
+/**
+ * IP e user-agent da requisição corrente.
+ *
+ * O IP vem de `clientIp()`, que só aceita cabeçalho de proxy declarado no
+ * ambiente — antes bastava mandar um `X-Forwarded-For` qualquer para sujar o
+ * histórico de acesso com um IP inventado (F17).
+ */
 export async function requestFingerprint() {
   try {
     const headerList = await headers();
-    const forwarded = headerList.get("x-forwarded-for");
-    const ipAddress =
-      forwarded?.split(",")[0]?.trim() || headerList.get("x-real-ip") || headerList.get("cf-connecting-ip") || null;
-    return { ipAddress, userAgent: headerList.get("user-agent") };
+    return { ipAddress: await clientIp(), userAgent: headerList.get("user-agent") };
   } catch {
     return { ipAddress: null, userAgent: null };
   }

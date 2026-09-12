@@ -199,7 +199,7 @@ Formato de cada tarefa: **Por quê** · **Arquivos** · **Passos** · **Aceite**
 - **Passos:** função `safeRedirect(target, fallback = "/dashboard")` que aceita apenas caminhos relativos começando com uma única `/`, sem `//`, sem `\`, sem esquema, e pertencentes a uma lista de prefixos internos. Usar no formulário e onde mais houver redirecionamento por parâmetro.
 - **Testes:** unitários com `//evil.com`, `/\evil.com`, `https://evil.com`, `javascript:alert(1)`, `/%2F%2Fevil.com` → todos caem no fallback; `/transactions?x=1` passa.
 
-#### - [ ] T1.4 — Rate limit, bloqueio progressivo e tempo constante no login
+#### - [x] T1.4 — Rate limit, bloqueio progressivo e tempo constante no login *(feito em 12/09/2026)*
 - **Por quê:** F03, F04, F17.
 - **Arquivos:** `lib/server/rate-limit.ts`, `lib/server/client-ip.ts`, `auth.ts`, `lib/actions/auth.ts`.
 - **Passos:**

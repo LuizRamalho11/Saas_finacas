@@ -5,6 +5,8 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 ## [Não publicado]
 
 ### Segurança
+- Login com rate limit (5/min por IP, 10/15 min por e-mail), bloqueio progressivo da conta (15 min, 1 h, 24 h a partir da 10ª falha seguida) e tempo de resposta igual para e-mail inexistente e senha errada (T1.4, F03/F04).
+- O IP do histórico de acesso e do rate limit deixa de sair de um cabeçalho que o cliente controla: só é aceito o proxy declarado em `TRUSTED_PROXY` (T1.4, F17).
 - Open redirect fechado: `?redirectTo=` passa por `safeRedirect()`, que só aceita caminho relativo de uma rota interna conhecida. Destino externo cai no dashboard (T1.3, F02).
 - Sessão revogada passa a valer como revogada: `requireUser()` confere a linha em `Session` (existência, `revokedAt`, `expiresAt` e inatividade de 12 h), o cookie caiu de 30 para 7 dias e `lastSeenAt` é gravado no máximo a cada 5 min. Logout e "encerrar outras sessões" agora derrubam o cookie na requisição seguinte (T1.2, F01).
 - `defineAction`/`defineQuery`/`definePublicAction`: toda função exportada de arquivo `"use server"` passa por um wrapper que resolve a sessão, valida os parâmetros com Zod e traduz erros. Parâmetros de leitura ganharam teto (`pageSize` ≤ 100, `months` ≤ 36, `limit` ≤ 50, importação ≤ 5.000 linhas), fechando a extração em massa do achado F05 (T1.1).

@@ -29,6 +29,13 @@ export default defineConfig({
           name: "unit",
           environment: "node",
           include: ["tests/unit/**/*.test.ts"],
+          // Valores de fachada: alguns módulos puros importam lib/env, que
+          // valida no import. Nenhum teste unitário abre conexão.
+          env: {
+            DATABASE_URL: "postgresql://finora:finora@localhost:1/finora",
+            AUTH_SECRET: TEST_AUTH_SECRET,
+            AUTH_TRUST_HOST: "true",
+          },
         },
       },
       {
