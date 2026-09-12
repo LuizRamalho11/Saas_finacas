@@ -47,8 +47,7 @@ export function ProfileSettings({ profile }: { profile: UserProfile }) {
 
   React.useEffect(() => setMounted(true), []);
 
-  const set = (key: keyof typeof form, value: string) =>
-    setForm((current) => ({ ...current, [key]: value }));
+  const set = (key: keyof typeof form, value: string) => setForm((current) => ({ ...current, [key]: value }));
 
   async function handleSave(event: React.FormEvent) {
     event.preventDefault();
@@ -159,8 +158,8 @@ export function ProfileSettings({ profile }: { profile: UserProfile }) {
               })}
             </div>
             <p className="flex items-start gap-2 text-xs text-muted-foreground">
-              <Monitor className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-              O contraste dos gráficos é recalculado automaticamente em cada tema.
+              <Monitor className="mt-0.5 size-3.5 shrink-0" aria-hidden />O contraste dos gráficos é recalculado
+              automaticamente em cada tema.
             </p>
           </CardContent>
         </Card>

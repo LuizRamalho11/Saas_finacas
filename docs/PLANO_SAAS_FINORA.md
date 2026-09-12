@@ -142,7 +142,7 @@ Formato de cada tarefa: **Por quê** · **Arquivos** · **Passos** · **Aceite**
 - **Passos:** resumir a stack, os comandos (`dev`, `db:local`, `db:migrate`, `test`, `e2e`, `lint`, `typecheck`), as regras da seção 1 deste plano e o link para este arquivo.
 - **Aceite:** arquivo com no máximo ~80 linhas, objetivo.
 
-#### - [ ] T0.3 — Lint, formatação e typecheck
+#### - [x] T0.3 — Lint, formatação e typecheck *(feito em 12/09/2026)*
 - **Passos:** instalar ESLint 9 com config flat do Next (`eslint-config-next`) + `typescript-eslint`, `eslint-plugin-security` e regra `no-restricted-imports` impedindo importar `@/lib/prisma` em arquivos `"use client"`; Prettier + `prettier-plugin-tailwindcss`; scripts `lint`, `format`, `typecheck` (`tsc --noEmit`). Opcional: `husky` + `lint-staged` no pre-commit.
 - **Aceite:** `npm run lint` e `npm run typecheck` passam sem erros (corrigir o que aparecer).
 

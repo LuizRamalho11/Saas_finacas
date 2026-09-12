@@ -41,8 +41,7 @@ function createRandom(seed: number) {
   };
 }
 
-const pick = <T,>(random: () => number, items: readonly T[]) =>
-  items[Math.floor(random() * items.length)];
+const pick = <T>(random: () => number, items: readonly T[]) => items[Math.floor(random() * items.length)];
 const between = (random: () => number, min: number, max: number) => min + random() * (max - min);
 
 function startOfToday() {
@@ -55,9 +54,7 @@ const addDays = (date: Date, days: number) => new Date(date.getTime() + days * D
 
 /** Curva sazonal anual: pico no 4º trimestre, vale em jan/fev. */
 function seasonalFactor(date: Date) {
-  const dayOfYear = Math.floor(
-    (date.getTime() - Date.UTC(date.getUTCFullYear(), 0, 0)) / DAY_MS,
-  );
+  const dayOfYear = Math.floor((date.getTime() - Date.UTC(date.getUTCFullYear(), 0, 0)) / DAY_MS);
   const yearly = Math.sin(((dayOfYear - 80) / 365) * Math.PI * 2) * 0.11;
   const q4 = date.getUTCMonth() >= 9 ? 0.14 : 0;
   const summerDip = date.getUTCMonth() <= 1 ? -0.12 : 0;
@@ -109,9 +106,18 @@ const ACCOUNTS = [
 ];
 
 const CLIENTS = [
-  "Núcleo Verde Alimentos", "Construtora Ipê Branco", "Clínica Vitalis", "Transportes Andorinha",
-  "Ateliê Marés", "Rede Farmacore", "Logística Ponta Sul", "Editora Bom Retiro",
-  "Cooperativa Serra Azul", "Studio Miralta", "Instituto Passo Certo", "Padaria Trigo & Cia",
+  "Núcleo Verde Alimentos",
+  "Construtora Ipê Branco",
+  "Clínica Vitalis",
+  "Transportes Andorinha",
+  "Ateliê Marés",
+  "Rede Farmacore",
+  "Logística Ponta Sul",
+  "Editora Bom Retiro",
+  "Cooperativa Serra Azul",
+  "Studio Miralta",
+  "Instituto Passo Certo",
+  "Padaria Trigo & Cia",
 ];
 
 const VENDORS: Record<string, string[]> = {
@@ -186,8 +192,7 @@ async function main() {
   const random = createRandom(20260908);
   const rows: Prisma.TransactionCreateManyInput[] = [];
 
-  const pushRow = (row: Omit<Prisma.TransactionCreateManyInput, "userId">) =>
-    rows.push({ ...row, userId: user.id });
+  const pushRow = (row: Omit<Prisma.TransactionCreateManyInput, "userId">) => rows.push({ ...row, userId: user.id });
 
   const start = addDays(TODAY, -(HISTORY_DAYS - 1));
 
@@ -291,8 +296,7 @@ async function main() {
         const category = categoryByName.get(bucket.name)!;
         const vendor = pick(random, VENDORS[bucket.name]);
         pushRow({
-          accountId:
-            bucket.name === "Software e ferramentas" || random() > 0.75 ? cardAccount.id : mainAccount.id,
+          accountId: bucket.name === "Software e ferramentas" || random() > 0.75 ? cardAccount.id : mainAccount.id,
           categoryId: category.id,
           description: `${vendor} — ${bucket.name.toLowerCase()}`,
           counterparty: vendor,
@@ -331,9 +335,18 @@ async function main() {
 
   // Histórico de acessos de exemplo, para a tela de segurança não nascer vazia
   const devices = [
-    { ip: "189.45.12.7", ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/141.0 Safari/537.36" },
-    { ip: "189.45.12.7", ua: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_2 like Mac OS X) AppleWebKit/605.1.15 Version/18.2 Mobile Safari/604.1" },
-    { ip: "201.17.88.140", ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36" },
+    {
+      ip: "189.45.12.7",
+      ua: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/141.0 Safari/537.36",
+    },
+    {
+      ip: "189.45.12.7",
+      ua: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_2 like Mac OS X) AppleWebKit/605.1.15 Version/18.2 Mobile Safari/604.1",
+    },
+    {
+      ip: "201.17.88.140",
+      ua: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140.0 Safari/537.36",
+    },
   ];
 
   await prisma.loginHistory.createMany({

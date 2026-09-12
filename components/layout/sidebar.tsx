@@ -29,7 +29,7 @@ export function Sidebar() {
         <NavLinks />
 
         <div className="mt-auto space-y-3">
-          <div className="rounded-card border border-border bg-gradient-to-br from-brand/12 to-violet/10 p-4">
+          <div className="from-brand/12 rounded-card border border-border bg-gradient-to-br to-violet/10 p-4">
             <span className="flex items-center gap-2 text-xs font-medium text-foreground">
               <Sparkles className="size-4 text-brand" aria-hidden />
               Fechamento de setembro

@@ -11,9 +11,7 @@ const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) {
-    throw new Error(
-      "DATABASE_URL não definida. Copie .env.example para .env antes de iniciar o servidor.",
-    );
+    throw new Error("DATABASE_URL não definida. Copie .env.example para .env antes de iniciar o servidor.");
   }
 
   return new PrismaClient({

@@ -12,7 +12,9 @@ import type { Kpi } from "@/types";
 function renderValue(kpi: Kpi, currency: ReturnType<typeof usePreferences>["currency"], compact: boolean) {
   if (kpi.format === "percent") return formatPercent(kpi.value);
   if (kpi.format === "number") return kpi.value.toFixed(0);
-  return compact ? formatCompact(kpi.value, currency) : formatCurrency(kpi.value, currency, { maximumFractionDigits: 0 });
+  return compact
+    ? formatCompact(kpi.value, currency)
+    : formatCurrency(kpi.value, currency, { maximumFractionDigits: 0 });
 }
 
 export function KpiCard({ kpi, comparisonLabel }: { kpi: Kpi; comparisonLabel: string }) {
@@ -23,7 +25,7 @@ export function KpiCard({ kpi, comparisonLabel }: { kpi: Kpi; comparisonLabel: s
       <div className="flex items-start justify-between gap-3 p-5 pb-2">
         <div className="min-w-0">
           <p className="truncate text-xs font-medium text-muted-foreground">{kpi.label}</p>
-          <p className="mt-1.5 text-kpi font-semibold tabular text-foreground">
+          <p className="tabular mt-1.5 text-kpi font-semibold text-foreground">
             {renderValue(kpi, currency, compactNumbers)}
           </p>
         </div>

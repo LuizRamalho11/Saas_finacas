@@ -19,7 +19,7 @@ export function Delta({ value, inverse = false, className, suffix }: DeltaProps)
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium tabular",
+        "tabular inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-xs font-medium",
         flat && "bg-surface-raised text-muted-foreground",
         !flat && positive && "bg-success/12 text-success",
         !flat && !positive && "bg-danger/12 text-danger",

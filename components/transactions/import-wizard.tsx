@@ -96,8 +96,7 @@ export function ImportWizard() {
       const text = await file.text();
       const { header, rows } = parseCsv(text);
 
-      const indexFor = (key: keyof ImportRow) =>
-        header.findIndex((column) => COLUMN_ALIASES[key].includes(column));
+      const indexFor = (key: keyof ImportRow) => header.findIndex((column) => COLUMN_ALIASES[key].includes(column));
 
       const missing = (["date", "description", "amount", "type", "category", "account"] as const).filter(
         (key) => indexFor(key) === -1,
@@ -198,7 +197,11 @@ export function ImportWizard() {
             }}
           >
             <span className="flex size-11 items-center justify-center rounded-full bg-surface-raised text-brand">
-              {parsing ? <Loader2 className="size-5 animate-spin" aria-hidden /> : <Upload className="size-5" aria-hidden />}
+              {parsing ? (
+                <Loader2 className="size-5 animate-spin" aria-hidden />
+              ) : (
+                <Upload className="size-5" aria-hidden />
+              )}
             </span>
             <span className="space-y-1">
               <span className="block text-sm font-medium text-foreground">
@@ -250,9 +253,7 @@ export function ImportWizard() {
                       Linha {item.line}: {item.error}
                     </li>
                   ))}
-                  {preview.invalid.length > 6 ? (
-                    <li>… e mais {preview.invalid.length - 6} linha(s).</li>
-                  ) : null}
+                  {preview.invalid.length > 6 ? <li>… e mais {preview.invalid.length - 6} linha(s).</li> : null}
                 </ul>
               </div>
             ) : null}
@@ -290,7 +291,7 @@ export function ImportWizard() {
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">{row.category}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">{row.account}</TableCell>
-                      <TableCell className="whitespace-nowrap text-right text-sm font-semibold tabular text-foreground">
+                      <TableCell className="tabular whitespace-nowrap text-right text-sm font-semibold text-foreground">
                         {formatCurrency(row.amountValue, currency)}
                       </TableCell>
                     </TableRow>

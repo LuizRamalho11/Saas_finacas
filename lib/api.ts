@@ -10,7 +10,7 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireUser } from "@/lib/auth/guard";
-import { addDays, periodWindow, startOfUtcDay, toISODate, PERIOD_DAYS } from "@/lib/periods";
+import { addDays, periodWindow, startOfUtcDay, toISODate } from "@/lib/periods";
 import { colorForIndex } from "@/lib/palette";
 import { transactionWhereFor } from "@/lib/actions/query-helpers";
 import type {

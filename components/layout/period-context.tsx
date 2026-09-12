@@ -17,10 +17,7 @@ export function PeriodProvider({ children }: { children: React.ReactNode }) {
   const [period, setPeriod] = React.useState<Period>("90d");
   const [accountId, setAccountId] = React.useState("all");
 
-  const value = React.useMemo(
-    () => ({ period, setPeriod, accountId, setAccountId }),
-    [period, accountId],
-  );
+  const value = React.useMemo(() => ({ period, setPeriod, accountId, setAccountId }), [period, accountId]);
 
   return <PeriodContext.Provider value={value}>{children}</PeriodContext.Provider>;
 }

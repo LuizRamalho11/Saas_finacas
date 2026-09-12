@@ -113,10 +113,7 @@ export async function updateAccount(id: string, input: unknown): Promise<ActionR
  * Exclui a conta. Com lançamentos vinculados, exige realocação — apagar em
  * cascata destruiria o histórico financeiro do usuário.
  */
-export async function deleteAccount(
-  id: string,
-  reassignToId?: string,
-): Promise<ActionResult<{ moved: number }>> {
+export async function deleteAccount(id: string, reassignToId?: string): Promise<ActionResult<{ moved: number }>> {
   try {
     const user = await requireUser();
 

@@ -187,7 +187,7 @@ export default function TransactionsPage() {
             {result.loading || item.value === null ? (
               <Skeleton className="mt-2 h-7 w-28" />
             ) : (
-              <p className={`mt-1.5 text-kpi font-semibold tabular ${item.tone}`}>{item.value}</p>
+              <p className={`tabular mt-1.5 text-kpi font-semibold ${item.tone}`}>{item.value}</p>
             )}
           </Card>
         ))}
@@ -212,7 +212,10 @@ export default function TransactionsPage() {
           <div className="grid w-full gap-3 md:grid-cols-2 xl:grid-cols-4">
             <label className="relative">
               <span className="sr-only">Buscar por descrição, cliente ou observação</span>
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle" aria-hidden />
+              <Search
+                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-subtle"
+                aria-hidden
+              />
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}

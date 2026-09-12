@@ -90,17 +90,17 @@ export function SecurityPanel({ history }: { history: LoginRecord[] }) {
       <div className="grid gap-4 sm:grid-cols-3">
         <Card className="p-5">
           <p className="text-xs font-medium text-muted-foreground">Acessos registrados</p>
-          <p className="mt-1.5 text-kpi font-semibold tabular text-foreground">{history.length}</p>
+          <p className="tabular mt-1.5 text-kpi font-semibold text-foreground">{history.length}</p>
         </Card>
         <Card className="p-5">
           <p className="text-xs font-medium text-muted-foreground">Sessões em aberto</p>
-          <p className="mt-1.5 text-kpi font-semibold tabular text-foreground">{activeSessions}</p>
+          <p className="tabular mt-1.5 text-kpi font-semibold text-foreground">{activeSessions}</p>
         </Card>
         <Card className="p-5">
           <p className="text-xs font-medium text-muted-foreground">Tentativas malsucedidas</p>
           <p
             className={cn(
-              "mt-1.5 text-kpi font-semibold tabular",
+              "tabular mt-1.5 text-kpi font-semibold",
               failures.length > 0 ? "text-warning" : "text-foreground",
             )}
           >

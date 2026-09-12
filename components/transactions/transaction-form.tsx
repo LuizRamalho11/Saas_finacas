@@ -99,7 +99,7 @@ export function TransactionForm({
 
   const availableCategories = categories.filter((category) => category.type === form.type);
 
-  const set = <K extends keyof FormState,>(key: K, value: FormState[K]) =>
+  const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((current) => ({ ...current, [key]: value }));
 
   function changeType(type: TransactionType) {
@@ -129,9 +129,7 @@ export function TransactionForm({
       notes: form.notes,
     };
 
-    const result = transaction
-      ? await updateTransaction(transaction.id, payload)
-      : await createTransaction(payload);
+    const result = transaction ? await updateTransaction(transaction.id, payload) : await createTransaction(payload);
 
     setSaving(false);
 
@@ -228,11 +226,7 @@ export function TransactionForm({
                   availableCategories.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
                       <span className="flex items-center gap-2">
-                        <span
-                          className="size-2.5 rounded-full"
-                          style={{ background: category.color }}
-                          aria-hidden
-                        />
+                        <span className="size-2.5 rounded-full" style={{ background: category.color }} aria-hidden />
                         {category.name}
                       </span>
                     </SelectItem>
@@ -285,7 +279,10 @@ export function TransactionForm({
             </Field>
 
             <Field id="method" label="Método" error={errors.method} optional>
-              <Select value={form.method || "none"} onValueChange={(value) => set("method", value === "none" ? "" : value)}>
+              <Select
+                value={form.method || "none"}
+                onValueChange={(value) => set("method", value === "none" ? "" : value)}
+              >
                 <SelectTrigger id="method">
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>

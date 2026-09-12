@@ -66,7 +66,11 @@ export async function createCategory(input: unknown): Promise<ActionResult<{ id:
     return { ok: true, data: { id: created.id }, message: "Categoria criada." };
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      return { ok: false, error: "Já existe uma categoria com esse nome.", fieldErrors: { name: "Nome já utilizado." } };
+      return {
+        ok: false,
+        error: "Já existe uma categoria com esse nome.",
+        fieldErrors: { name: "Nome já utilizado." },
+      };
     }
     return { ok: false, error: describeError(error) };
   }
@@ -108,7 +112,11 @@ export async function updateCategory(id: string, input: unknown): Promise<Action
     return { ok: true, data: { id }, message: "Categoria atualizada." };
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      return { ok: false, error: "Já existe uma categoria com esse nome.", fieldErrors: { name: "Nome já utilizado." } };
+      return {
+        ok: false,
+        error: "Já existe uma categoria com esse nome.",
+        fieldErrors: { name: "Nome já utilizado." },
+      };
     }
     return { ok: false, error: describeError(error) };
   }
@@ -118,10 +126,7 @@ export async function updateCategory(id: string, input: unknown): Promise<Action
  * Exclui a categoria. Se houver lançamentos vinculados, exige que o usuário
  * escolha para onde realocá-los — nunca apagamos transações em cascata.
  */
-export async function deleteCategory(
-  id: string,
-  reassignToId?: string,
-): Promise<ActionResult<{ moved: number }>> {
+export async function deleteCategory(id: string, reassignToId?: string): Promise<ActionResult<{ moved: number }>> {
   try {
     const user = await requireUser();
 

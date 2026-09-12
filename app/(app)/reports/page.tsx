@@ -31,7 +31,9 @@ export default function ReportsPage() {
   const monthly = useAsync(() => getMonthlySeries(24), []);
 
   const config = VIEWS.find((item) => item.value === view)!;
-  const series = monthly.data ?? [];
+  // useMemo para o array vazio não virar uma referência nova a cada render e
+  // invalidar os cálculos abaixo sem necessidade.
+  const series = React.useMemo<MonthlyPoint[]>(() => monthly.data ?? [], [monthly.data]);
 
   /** Últimos 12 meses ao lado do mesmo mês do ano anterior. */
   const compare: CompareRow[] = React.useMemo(() => {
@@ -107,7 +109,7 @@ export default function ReportsPage() {
             {monthly.loading ? (
               <Skeleton className="mt-2 h-7 w-32" />
             ) : (
-              <p className="mt-1.5 text-kpi font-semibold tabular text-foreground">
+              <p className="tabular mt-1.5 text-kpi font-semibold text-foreground">
                 {formatCurrency(item.value, currency, { maximumFractionDigits: 0 })}
               </p>
             )}
@@ -186,23 +188,21 @@ function MonthlyTable({ rows }: { rows: MonthlyPoint[] }) {
               <TableCell className="whitespace-nowrap text-sm font-medium text-foreground">
                 {formatMonthShort(row.month)}
               </TableCell>
-              <TableCell className="whitespace-nowrap text-right text-sm tabular text-muted-foreground">
+              <TableCell className="tabular whitespace-nowrap text-right text-sm text-muted-foreground">
                 {formatCurrency(row.revenue, currency, { maximumFractionDigits: 0 })}
               </TableCell>
-              <TableCell className="whitespace-nowrap text-right text-sm tabular text-muted-foreground">
+              <TableCell className="tabular whitespace-nowrap text-right text-sm text-muted-foreground">
                 {formatCurrency(row.expense, currency, { maximumFractionDigits: 0 })}
               </TableCell>
               <TableCell
-                className={`whitespace-nowrap text-right text-sm font-semibold tabular ${
+                className={`tabular whitespace-nowrap text-right text-sm font-semibold ${
                   row.profit >= 0 ? "text-foreground" : "text-danger"
                 }`}
               >
                 {formatCurrency(row.profit, currency, { maximumFractionDigits: 0 })}
               </TableCell>
               <TableCell className="whitespace-nowrap text-right">
-                <span className="text-sm tabular text-muted-foreground">
-                  {margin.toFixed(1).replace(".", ",")}%
-                </span>
+                <span className="tabular text-sm text-muted-foreground">{margin.toFixed(1).replace(".", ",")}%</span>
               </TableCell>
             </TableRow>
           );

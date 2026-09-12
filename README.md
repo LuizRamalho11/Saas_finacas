@@ -41,6 +41,9 @@ Login do seed: **luiza.andrade@finora.app** / **finora2026**
 | `npm run db:reset` | Derruba o schema, reaplica as migrations e roda o seed. |
 | `npm run db:studio` | Abre o Prisma Studio para inspecionar as tabelas. |
 | `npm run build` | `prisma generate` + build de produção. |
+| `npm run lint` | ESLint 9 em todo o projeto; qualquer aviso reprova. |
+| `npm run typecheck` | `tsc --noEmit`. |
+| `npm run format` | Formata com Prettier (`npm run format:check` só confere). |
 
 **Usando um Postgres gerenciado:** troque só a `DATABASE_URL` no `.env` e rode
 `npm run db:migrate && npm run db:seed`. Nada mais muda — nem código, nem

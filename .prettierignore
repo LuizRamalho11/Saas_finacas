@@ -1,0 +1,16 @@
+.next
+.next-e2e
+.postgres
+.postgres-test
+node_modules
+coverage
+playwright-report
+test-results
+package-lock.json
+prisma/migrations
+references
+*.tsbuildinfo
+
+# Documentação: o plano e as ADRs são escritos à mão e o Prettier reescreve as
+# tabelas inteiras, poluindo o diff de um arquivo que é fonte de verdade.
+*.md

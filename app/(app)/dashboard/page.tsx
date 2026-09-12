@@ -64,12 +64,13 @@ export default function DashboardPage() {
       />
 
       {/* KPIs */}
-      <section aria-label="Indicadores do período" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
+      <section
+        aria-label="Indicadores do período"
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6"
+      >
         {kpis.loading || !kpis.data
           ? Array.from({ length: 6 }).map((_, index) => <KpiCardSkeleton key={index} />)
-          : kpis.data.map((kpi) => (
-              <KpiCard key={kpi.id} kpi={kpi} comparisonLabel={COMPARISON_LABEL[period]} />
-            ))}
+          : kpis.data.map((kpi) => <KpiCard key={kpi.id} kpi={kpi} comparisonLabel={COMPARISON_LABEL[period]} />)}
       </section>
 
       {/* Série principal + medidores */}
@@ -195,7 +196,7 @@ export default function DashboardPage() {
                   <div key={source.id} className="space-y-2">
                     <div className="flex items-baseline justify-between gap-3">
                       <span className="text-sm text-foreground">{source.label}</span>
-                      <span className="text-sm font-semibold tabular text-foreground">
+                      <span className="tabular text-sm font-semibold text-foreground">
                         {formatCompact(source.amount, currency)}
                       </span>
                     </div>

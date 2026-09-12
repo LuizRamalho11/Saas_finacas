@@ -72,8 +72,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           position="bottom-right"
           toastOptions={{
             classNames: {
-              toast:
-                "!bg-surface !border-border !text-foreground !shadow-pop !rounded-lg",
+              toast: "!bg-surface !border-border !text-foreground !shadow-pop !rounded-lg",
               description: "!text-muted-foreground",
               actionButton: "!bg-brand !text-brand-foreground",
               cancelButton: "!bg-surface-raised !text-muted-foreground",

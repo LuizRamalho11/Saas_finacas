@@ -67,8 +67,22 @@ export function MonthlyCompareChart({
             iconSize={8}
             formatter={(value) => <span className="text-xs text-muted-foreground">{value}</span>}
           />
-          <Bar dataKey="previous" isAnimationActive={false} name="Ano anterior" fill="hsl(var(--fg-subtle) / 0.32)" radius={[6, 6, 4, 4]} maxBarSize={26} />
-          <Bar dataKey="current" isAnimationActive={false} name="Período atual" fill={`hsl(var(${colorVar}))`} radius={[6, 6, 4, 4]} maxBarSize={26} />
+          <Bar
+            dataKey="previous"
+            isAnimationActive={false}
+            name="Ano anterior"
+            fill="hsl(var(--fg-subtle) / 0.32)"
+            radius={[6, 6, 4, 4]}
+            maxBarSize={26}
+          />
+          <Bar
+            dataKey="current"
+            isAnimationActive={false}
+            name="Período atual"
+            fill={`hsl(var(${colorVar}))`}
+            radius={[6, 6, 4, 4]}
+            maxBarSize={26}
+          />
         </BarChart>
       </ResponsiveContainer>
     </div>

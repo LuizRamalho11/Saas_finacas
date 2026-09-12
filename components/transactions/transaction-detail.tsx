@@ -17,13 +17,7 @@ interface TransactionDetailProps {
   onDelete: (transaction: Transaction) => void;
 }
 
-export function TransactionDetail({
-  transaction,
-  open,
-  onOpenChange,
-  onEdit,
-  onDelete,
-}: TransactionDetailProps) {
+export function TransactionDetail({ transaction, open, onOpenChange, onEdit, onDelete }: TransactionDetailProps) {
   const { currency } = usePreferences();
   if (!transaction) return null;
 
@@ -54,7 +48,7 @@ export function TransactionDetail({
 
           <div className="rounded-card border border-border bg-surface-raised/50 p-4">
             <p className="text-xs text-muted-foreground">{income ? "Entrada" : "Saída"}</p>
-            <p className={cn("mt-1 text-2xl font-semibold tabular", income ? "text-success" : "text-foreground")}>
+            <p className={cn("tabular mt-1 text-2xl font-semibold", income ? "text-success" : "text-foreground")}>
               {income ? "+" : "−"}
               {formatCurrency(transaction.amount, currency)}
             </p>
@@ -96,9 +90,7 @@ export function TransactionDetail({
             <ol className="space-y-2 text-xs text-muted-foreground">
               <li className="flex items-start gap-2">
                 <span className="mt-1 size-1.5 shrink-0 rounded-full bg-brand" aria-hidden />
-                <span>
-                  Criada em {formatDateTime(transaction.createdAt)}
-                </span>
+                <span>Criada em {formatDateTime(transaction.createdAt)}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span

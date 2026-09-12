@@ -105,7 +105,7 @@ export default function CashFlowPage() {
             {flow.loading ? (
               <Skeleton className="mt-2 h-7 w-32" />
             ) : (
-              <p className="mt-1.5 text-kpi font-semibold tabular text-foreground">
+              <p className="tabular mt-1.5 text-kpi font-semibold text-foreground">
                 {formatCurrency(item.value, currency, { maximumFractionDigits: 0 })}
               </p>
             )}
@@ -132,7 +132,9 @@ export default function CashFlowPage() {
             <span className="flex items-center gap-1.5">
               <span
                 className="h-0.5 w-5 rounded-full"
-                style={{ background: "repeating-linear-gradient(90deg, hsl(var(--chart-3)) 0 5px, transparent 5px 9px)" }}
+                style={{
+                  background: "repeating-linear-gradient(90deg, hsl(var(--chart-3)) 0 5px, transparent 5px 9px)",
+                }}
                 aria-hidden
               />
               Projetado
@@ -186,7 +188,7 @@ export default function CashFlowPage() {
                   <p className="text-xs text-muted-foreground">{item.when}</p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-semibold tabular text-foreground">
+                  <span className="tabular text-sm font-semibold text-foreground">
                     {formatCurrency(item.amount, currency, { maximumFractionDigits: 0 })}
                   </span>
                   <Badge variant={item.tone}>Recorrente</Badge>
@@ -208,7 +210,10 @@ function AccountRow({ account }: { account: Account }) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-surface-raised/50 px-4 py-3">
       <div className="flex min-w-0 items-center gap-3">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand/12 text-brand" aria-hidden>
+        <span
+          className="bg-brand/12 flex size-9 shrink-0 items-center justify-center rounded-lg text-brand"
+          aria-hidden
+        >
           <Icon className="size-4" />
         </span>
         <div className="min-w-0">
@@ -216,7 +221,7 @@ function AccountRow({ account }: { account: Account }) {
           <p className="truncate text-xs text-muted-foreground">{account.institution}</p>
         </div>
       </div>
-      <span className={`text-sm font-semibold tabular ${negative ? "text-danger" : "text-foreground"}`}>
+      <span className={`tabular text-sm font-semibold ${negative ? "text-danger" : "text-foreground"}`}>
         {formatCurrency(account.balance, currency, { maximumFractionDigits: 0 })}
       </span>
     </div>

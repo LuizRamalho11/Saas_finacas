@@ -80,7 +80,11 @@ export async function createTransaction(input: unknown): Promise<ActionResult<{ 
     return { ok: true, data: { id: created.id }, message: "Transação criada." };
   } catch (error) {
     if (error instanceof Error && error.message === "CATEGORIA_INVALIDA") {
-      return { ok: false, error: "Categoria não encontrada.", fieldErrors: { categoryId: "Selecione uma categoria válida." } };
+      return {
+        ok: false,
+        error: "Categoria não encontrada.",
+        fieldErrors: { categoryId: "Selecione uma categoria válida." },
+      };
     }
     if (error instanceof Error && error.message === "CONTA_INVALIDA") {
       return { ok: false, error: "Conta não encontrada.", fieldErrors: { accountId: "Selecione uma conta válida." } };
@@ -263,7 +267,11 @@ export async function previewImport(rows: ImportRow[]): Promise<ActionResult<Imp
       });
 
       if (!parsed.success) {
-        preview.invalid.push({ line, row, error: Object.values(fieldErrorsFrom(parsed.error))[0] ?? "Linha inválida." });
+        preview.invalid.push({
+          line,
+          row,
+          error: Object.values(fieldErrorsFrom(parsed.error))[0] ?? "Linha inválida.",
+        });
         return;
       }
 
@@ -273,7 +281,11 @@ export async function previewImport(rows: ImportRow[]): Promise<ActionResult<Imp
         return;
       }
       if (category.type !== normalizedType) {
-        preview.invalid.push({ line, row, error: `"${category.name}" é uma categoria de ${category.type === "income" ? "entrada" : "saída"}.` });
+        preview.invalid.push({
+          line,
+          row,
+          error: `"${category.name}" é uma categoria de ${category.type === "income" ? "entrada" : "saída"}.`,
+        });
         return;
       }
 
@@ -356,7 +368,18 @@ export async function exportTransactionsCsv(query: {
     });
 
     const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
-    const header = ["Data", "Descrição", "Contraparte", "Categoria", "Conta", "Tipo", "Status", "Valor", "Método", "Observações"];
+    const header = [
+      "Data",
+      "Descrição",
+      "Contraparte",
+      "Categoria",
+      "Conta",
+      "Tipo",
+      "Status",
+      "Valor",
+      "Método",
+      "Observações",
+    ];
     const lines = rows.map((row) =>
       [
         row.date.toISOString().slice(0, 10),

@@ -16,16 +16,9 @@ export interface TransactionFilters {
  * O `userId` é sempre o primeiro parâmetro e vem da sessão — nunca do cliente.
  */
 export function transactionWhereFor(userId: string, filters: TransactionFilters): Prisma.TransactionWhereInput {
-  const {
-    search = "",
-    categoryId = "all",
-    status = "all",
-    type = "all",
-    period = "90d",
-    accountId = "all",
-  } = filters;
+  const { search = "", categoryId = "all", status = "all", type = "all", period = "90d", accountId = "all" } = filters;
 
-  const days = PERIOD_DAYS[(period as Period)] ?? PERIOD_DAYS["90d"];
+  const days = PERIOD_DAYS[period as Period] ?? PERIOD_DAYS["90d"];
   const from = addDays(startOfUtcDay(), -days);
   const term = search.trim();
 
