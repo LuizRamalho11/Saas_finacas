@@ -30,7 +30,8 @@ export async function recordFailedLogin(email: string, reason: string, userId?: 
  */
 export async function openSession(userId: string, email: string) {
   const { ipAddress, userAgent } = await requestFingerprint();
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  // Mesma validade do cookie (auth.ts): 7 dias.
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
   const session = await prisma.session.create({
     data: {

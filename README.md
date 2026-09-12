@@ -112,6 +112,11 @@ User ──┬── Account      (conta bancária, cartão, investimento)
 
 ## Segurança
 
+Sessões vivem em banco: o cookie carrega um `sessionId` e toda requisição
+autenticada confere se a sessão existe, não foi revogada, não venceu (7 dias) e
+não ficou 12 h parada. Revogar no banco derruba o cookie na requisição seguinte.
+
+
 - Toda Server Action começa por `requireUser()`, que lê a sessão e devolve o
   usuário **sem `passwordHash`** (o `select` do Prisma nem traz a coluna).
 - Nenhuma query roda sem `userId`. Edição e exclusão usam `updateMany`/

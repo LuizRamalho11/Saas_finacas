@@ -37,6 +37,9 @@ model Session {
   userId       String
   expiresAt    DateTime
   revokedAt    DateTime?
+  /// Última requisição autenticada desta sessão. Alimenta a expiração por
+  /// inatividade; gravado no máximo uma vez a cada 5 minutos.
+  lastSeenAt   DateTime  @default(now())
   createdAt    DateTime  @default(now())
 
   user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)

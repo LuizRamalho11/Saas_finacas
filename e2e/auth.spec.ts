@@ -31,3 +31,24 @@ test("rota protegida sem sessão manda para o login", async ({ page }) => {
 
   await expect(page).toHaveURL(/\/login\?redirectTo=%2Ftransactions/);
 });
+
+/**
+ * F01: o cookie de sessão é um JWT e, antes da T1.2, continuava válido depois do
+ * logout. Aqui guardamos o cookie, saímos e devolvemos o cookie ao navegador.
+ */
+test("cookie reaproveitado depois do logout não vale mais", async ({ page, context }) => {
+  await login(page);
+  await expect(page).toHaveURL(/\/dashboard$/);
+
+  const cookiesDaSessao = await context.cookies();
+
+  await page.getByRole("button", { name: `Menu da conta de ${E2E_USER.name}` }).click();
+  await page.getByRole("menuitem", { name: "Sair da conta" }).click();
+  await expect(page).toHaveURL(/\/login/);
+
+  await context.addCookies(cookiesDaSessao);
+  await page.goto("/dashboard");
+
+  await expect(page).toHaveURL(/\/login/);
+  await expect(page.getByRole("button", { name: "Entrar no painel" })).toBeVisible();
+});

@@ -40,7 +40,7 @@ function payloadFor(categoryId: string, accountId: string) {
 describe("isolamento de lançamentos entre usuários", () => {
   it("o dono lê o próprio lançamento", async () => {
     const { owner, transaction } = await twoUsersWithATransaction();
-    signInAs({ id: owner.user.id, email: owner.user.email });
+    signInAs(owner);
 
     const found = await getTransaction(transaction.id);
 
@@ -50,14 +50,14 @@ describe("isolamento de lançamentos entre usuários", () => {
 
   it("outro usuário não enxerga o lançamento", async () => {
     const { intruder, transaction } = await twoUsersWithATransaction();
-    signInAs({ id: intruder.user.id, email: intruder.user.email });
+    signInAs(intruder);
 
     expect(await getTransaction(transaction.id)).toBeNull();
   });
 
   it("outro usuário não consegue editar, e o registro fica intacto", async () => {
     const { intruder, transaction } = await twoUsersWithATransaction();
-    signInAs({ id: intruder.user.id, email: intruder.user.email });
+    signInAs(intruder);
 
     const result = await updateTransaction({
       id: transaction.id,
@@ -74,7 +74,7 @@ describe("isolamento de lançamentos entre usuários", () => {
 
   it("outro usuário não consegue excluir, e o registro continua no banco", async () => {
     const { intruder, transaction } = await twoUsersWithATransaction();
-    signInAs({ id: intruder.user.id, email: intruder.user.email });
+    signInAs(intruder);
 
     const result = await deleteTransaction(transaction.id);
 
@@ -84,7 +84,7 @@ describe("isolamento de lançamentos entre usuários", () => {
 
   it("não dá para criar lançamento com a categoria e a conta de outro usuário", async () => {
     const { owner, intruder } = await twoUsersWithATransaction();
-    signInAs({ id: intruder.user.id, email: intruder.user.email });
+    signInAs(intruder);
 
     const result = await createTransaction(payloadFor(owner.category.id, owner.account.id));
 

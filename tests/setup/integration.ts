@@ -25,8 +25,14 @@ vi.mock("next/cache", () => ({
   revalidateTag: vi.fn(),
 }));
 
-export function signInAs(user: { id: string; email: string; sessionId?: string }) {
-  session.value = { user };
+/**
+ * Autentica o teste como o dono de um cenário criado pelas factories.
+ * Aceita direto o retorno de `createUserWithData()`.
+ */
+export function signInAs(context: { user: { id: string; email: string }; session?: { id: string } }) {
+  session.value = {
+    user: { id: context.user.id, email: context.user.email, sessionId: context.session?.id },
+  };
 }
 
 export function signOutEveryone() {

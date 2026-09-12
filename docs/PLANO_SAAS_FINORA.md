@@ -186,7 +186,7 @@ Formato de cada tarefa: **Por quê** · **Arquivos** · **Passos** · **Aceite**
 - **Aceite:** nenhuma função exportada de arquivo `"use server"` fica fora do wrapper (criar um teste que importa os módulos e verifica isso, ou regra de lint).
 - **Testes:** chamar `getTransactions({ pageSize: 1_000_000 })` retorna erro de validação; `getMonthlySeries(10_000)` idem.
 
-#### - [ ] T1.2 — Sessão revogada deixa de valer (correção imediata)
+#### - [x] T1.2 — Sessão revogada deixa de valer (correção imediata) *(feito em 12/09/2026)*
 - **Por quê:** F01.
 - **Arquivos:** `lib/auth/guard.ts`, `auth.ts`.
 - **Passos:** em `requireUser()`, buscar a `Session` do `sessionId` do token e rejeitar se não existir, se `revokedAt` estiver preenchido ou se `expiresAt` já passou. Reduzir `maxAge` do JWT para 7 dias e adicionar expiração por inatividade (ex.: 12 h sem uso → `revokedAt`), atualizando um `lastSeenAt` no máximo 1×/5 min. Ao revogar, a próxima requisição cai em `/api/session/expired`.

@@ -14,7 +14,9 @@ const credentialsSchema = z.object({
 export const { handlers, signIn, signOut, auth } = NextAuth({
   // O provider de credenciais exige JWT: o Auth.js não grava sessão em banco
   // nesse fluxo. A tabela Session é mantida pela aplicação (lib/auth/session-log).
-  session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
+  // 7 dias, e não 30: o cookie é um JWT e só é derrubado no servidor porque
+  // `requireUser()` confere a linha em `Session` (T1.2).
+  session: { strategy: "jwt", maxAge: 7 * 24 * 60 * 60 },
   pages: { signIn: "/login" },
   secret: env.AUTH_SECRET,
   // F18: vinha fixo como `true` no código; agora depende do ambiente.

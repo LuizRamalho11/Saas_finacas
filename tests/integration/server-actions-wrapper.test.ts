@@ -36,8 +36,8 @@ describe("cobertura do defineAction", () => {
 
 describe("limites dos parâmetros de leitura (F05)", () => {
   it("getTransactions recusa pageSize absurdo", async () => {
-    const { user } = await createUserWithData();
-    signInAs({ id: user.id, email: user.email });
+    const scenario = await createUserWithData();
+    signInAs(scenario);
 
     await expect(api.getTransactions({ pageSize: 1_000_000 })).rejects.toBeInstanceOf(AppError);
     await expect(api.getTransactions({ pageSize: 1_000_000 })).rejects.toMatchObject({
@@ -46,37 +46,38 @@ describe("limites dos parâmetros de leitura (F05)", () => {
   });
 
   it("getTransactions aceita um pageSize dentro do limite", async () => {
-    const { user } = await createUserWithData();
-    signInAs({ id: user.id, email: user.email });
+    const scenario = await createUserWithData();
+    signInAs(scenario);
 
     const page = await api.getTransactions({ pageSize: 50 });
     expect(page.rows).toEqual([]);
   });
 
   it("getMonthlySeries recusa um intervalo gigante", async () => {
-    const { user } = await createUserWithData();
-    signInAs({ id: user.id, email: user.email });
+    const scenario = await createUserWithData();
+    signInAs(scenario);
 
     await expect(api.getMonthlySeries(10_000)).rejects.toMatchObject({ code: "DADOS_INVALIDOS" });
   });
 
   it("getRecentTransactions recusa limite acima de 50", async () => {
-    const { user } = await createUserWithData();
-    signInAs({ id: user.id, email: user.email });
+    const scenario = await createUserWithData();
+    signInAs(scenario);
 
     await expect(api.getRecentTransactions(5_000)).rejects.toMatchObject({ code: "DADOS_INVALIDOS" });
   });
 
   it("filtro de período inválido é recusado antes de chegar ao banco", async () => {
-    const { user } = await createUserWithData();
-    signInAs({ id: user.id, email: user.email });
+    const scenario = await createUserWithData();
+    signInAs(scenario);
 
     await expect(api.getKpis("todos" as never)).rejects.toMatchObject({ code: "DADOS_INVALIDOS" });
   });
 
   it("a importação recusa arquivo acima de 5.000 linhas", async () => {
-    const { user, account, category } = await createUserWithData();
-    signInAs({ id: user.id, email: user.email });
+    const scenario = await createUserWithData();
+    const { account, category } = scenario;
+    signInAs(scenario);
 
     const row = {
       description: "Assinatura",

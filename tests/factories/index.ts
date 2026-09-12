@@ -66,10 +66,32 @@ export async function createTransaction(
   });
 }
 
-/** Usuário já com conta e categoria de saída — o cenário mais comum nos testes. */
+/**
+ * Sessão ativa do usuário. Desde a T1.2 o `requireUser()` confere esta linha,
+ * então todo teste autenticado precisa de uma.
+ */
+export async function createSession(
+  userId: string,
+  overrides: { expiresAt?: Date; revokedAt?: Date | null; lastSeenAt?: Date } = {},
+) {
+  return prisma.session.create({
+    data: {
+      userId,
+      sessionToken: crypto.randomUUID(),
+      expiresAt: overrides.expiresAt ?? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      revokedAt: overrides.revokedAt ?? null,
+      ...(overrides.lastSeenAt ? { lastSeenAt: overrides.lastSeenAt } : {}),
+    },
+  });
+}
+
+/** Usuário já com conta, categoria de saída e sessão — o cenário mais comum. */
 export async function createUserWithData() {
   const user = await createUser();
-  const account = await createAccount(user.id);
-  const category = await createCategory(user.id, { type: "expense" });
-  return { user, account, category };
+  const [account, category, session] = await Promise.all([
+    createAccount(user.id),
+    createCategory(user.id, { type: "expense" }),
+    createSession(user.id),
+  ]);
+  return { user, account, category, session };
 }
