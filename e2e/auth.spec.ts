@@ -74,3 +74,21 @@ test("redirectTo interno e conhecido é respeitado", async ({ page }) => {
 
   await expect(page).toHaveURL(/\/transactions$/);
 });
+
+/**
+ * A rota que limpa o cookie é um GET que encerra a sessão. Se qualquer site
+ * pudesse disparar por `<img src>`, deslogaria quem estivesse usando o produto.
+ */
+test("subrequisição de outro site não consegue encerrar a sessão", async ({ page, context }) => {
+  await login(page);
+  await expect(page).toHaveURL(/\/dashboard$/);
+
+  const resposta = await context.request.get("/api/session/expired", {
+    headers: { "sec-fetch-dest": "image", "sec-fetch-mode": "no-cors", "sec-fetch-site": "cross-site" },
+  });
+  expect(resposta.status()).toBe(204);
+
+  // A sessão continua de pé.
+  await page.goto("/dashboard");
+  await expect(page).toHaveURL(/\/dashboard$/);
+});

@@ -52,15 +52,23 @@ export async function openSession(userId: string, email: string) {
   return session.id;
 }
 
-/** Fecha a sessão e carimba `logoutAt` no histórico. Idempotente. */
-export async function closeSession(sessionId: string | undefined | null) {
+/**
+ * Fecha a sessão e carimba `logoutAt` no histórico. Idempotente.
+ *
+ * `userId` entra no filtro como defesa em profundidade: hoje todos os chamadores
+ * passam uma sessão já conferida, mas se um dia um id vier do cliente, revogar a
+ * sessão de outra pessoa continua impossível.
+ */
+export async function closeSession(sessionId: string | undefined | null, userId?: string) {
   if (!sessionId) return;
   const now = new Date();
 
-  await prisma.session.updateMany({
-    where: { id: sessionId, revokedAt: null },
+  const revogadas = await prisma.session.updateMany({
+    where: { id: sessionId, revokedAt: null, ...(userId ? { userId } : {}) },
     data: { revokedAt: now },
   });
+
+  if (revogadas.count === 0) return;
 
   await prisma.loginHistory.updateMany({
     where: { sessionId, logoutAt: null },

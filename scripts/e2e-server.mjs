@@ -24,7 +24,14 @@ const env = {
   AUTH_TRUST_HOST: "true",
   APP_URL: `http://localhost:${PORT}`,
   NEXT_DIST_DIR: ".next-e2e",
+  // Hermético de propósito: o E2E exercita o comportamento de produção, mesmo
+  // que o .env da máquina esteja em modo demonstração.
+  APP_MODE: "production",
 };
+
+// Em modo produção não existe senha de demonstração; herdar a da máquina
+// deixaria o E2E dependendo do .env de quem roda.
+delete env.DEMO_PASSWORD;
 
 const postgres = new EmbeddedPostgres({
   databaseDir: DATA_DIR,

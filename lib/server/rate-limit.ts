@@ -31,6 +31,8 @@ export interface RateLimiter {
   peek(key: string, rule: RateLimitRule): Promise<RateLimitResult>;
   /** Zera a contagem (login bem-sucedido, por exemplo). */
   reset(key: string): Promise<void>;
+  /** Quantas chaves estão vivas. Só o adaptador em memória sabe responder. */
+  size?(): number;
 }
 
 function resultFrom(count: number, rule: RateLimitRule, resetAt: number): RateLimitResult {
@@ -42,9 +44,35 @@ function resultFrom(count: number, rule: RateLimitRule, resetAt: number): RateLi
   };
 }
 
+/**
+ * Teto de chaves vivas. Sem isso, uma rajada com milhões de e-mails distintos
+ * encheria a memória do processo — o limitador viraria o próprio vetor de DoS.
+ */
+const MAX_KEYS = 20_000;
+
 /** Contagem por processo. Some no restart e não enxerga outras instâncias. */
-export function createMemoryRateLimiter(): RateLimiter {
+export function createMemoryRateLimiter(options: { maxKeys?: number } = {}): RateLimiter {
+  const maxKeys = options.maxKeys ?? MAX_KEYS;
   const buckets = new Map<string, { count: number; resetAt: number }>();
+
+  /** Quantas chaves estão vivas agora. Só os testes usam. */
+  function size() {
+    return buckets.size;
+  }
+
+  /** Descarta janelas vencidas e, no limite, as que vencem primeiro. */
+  function prune(now: number) {
+    for (const [key, bucket] of buckets) {
+      if (bucket.resetAt <= now) buckets.delete(key);
+    }
+
+    if (buckets.size <= maxKeys) return;
+
+    const porVencimento = [...buckets.entries()].sort((a, b) => a[1].resetAt - b[1].resetAt);
+    for (const [key] of porVencimento.slice(0, buckets.size - maxKeys)) {
+      buckets.delete(key);
+    }
+  }
 
   return {
     async hit(key, rule) {
@@ -54,6 +82,8 @@ export function createMemoryRateLimiter(): RateLimiter {
       if (!current || current.resetAt <= now) {
         const fresh = { count: 1, resetAt: now + rule.windowMs };
         buckets.set(key, fresh);
+        // Poda depois de inserir: a chave recém-criada é a mais nova e sobrevive.
+        if (buckets.size > maxKeys) prune(now);
         return resultFrom(fresh.count, rule, fresh.resetAt);
       }
 
@@ -70,6 +100,8 @@ export function createMemoryRateLimiter(): RateLimiter {
     async reset(key) {
       buckets.delete(key);
     },
+
+    size,
   };
 }
 
@@ -90,9 +122,14 @@ export function createUpstashRateLimiter(url: string, token: string): RateLimite
       const windowSeconds = Math.ceil(rule.windowMs / 1000);
       const count = Number(await command(["incr", key]));
 
-      if (count === 1) await command(["expire", key, String(windowSeconds)]);
+      let ttl = Number(await command(["ttl", key]));
 
-      const ttl = Number(await command(["ttl", key]));
+      // -1 = chave sem expiração: acontece se um EXPIRE anterior falhou. Sem
+      // este reparo a chave ficaria eterna e barraria o usuário para sempre.
+      if (count === 1 || ttl < 0) {
+        await command(["expire", key, String(windowSeconds)]);
+        ttl = windowSeconds;
+      }
       const resetAt = Date.now() + Math.max(1, ttl) * 1000;
       return resultFrom(count, rule, resetAt);
     },

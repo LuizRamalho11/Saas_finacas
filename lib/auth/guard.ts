@@ -68,7 +68,7 @@ export async function requireUser(): Promise<CurrentUser> {
   }
 
   if (now.getTime() - record.lastSeenAt.getTime() > IDLE_LIMIT_MS) {
-    await closeSession(record.id);
+    await closeSession(record.id, userId);
     throw new AppError("NAO_AUTENTICADO");
   }
 

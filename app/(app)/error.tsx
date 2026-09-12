@@ -12,7 +12,9 @@ export default function AppError({ error, reset }: { error: Error & { digest?: s
     console.error(error);
   }, [error]);
 
-  const isAuth = error.message.includes("NAO_AUTENTICADO");
+  // A mensagem muda entre desenvolvimento e produção (o Next redige o texto no
+  // servidor), então olhamos as duas formas que uma falha de sessão pode chegar.
+  const isAuth = /NAO_AUTENTICADO|sessão expirou/i.test(error.message);
 
   return (
     <Card className="mx-auto max-w-lg p-8 text-center">

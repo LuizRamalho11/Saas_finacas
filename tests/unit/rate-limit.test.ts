@@ -60,3 +60,36 @@ describe("limitador em memória", () => {
     expect(result.retryAfterSeconds).toBeLessThanOrEqual(60);
   });
 });
+
+describe("teto de chaves (evita virar vetor de DoS de memória)", () => {
+  it("descarta janelas vencidas em vez de acumular", async () => {
+    const limiter = createMemoryRateLimiter({ maxKeys: 3 });
+    const janelaCurta = { limit: 5, windowMs: 10 };
+
+    for (let i = 0; i < 3; i += 1) await limiter.hit(`vencida-${i}`, janelaCurta);
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    await limiter.hit("nova", janelaCurta);
+
+    expect(limiter.size?.()).toBe(1);
+  });
+
+  it("não passa do teto nem com chaves novas em rajada", async () => {
+    const limiter = createMemoryRateLimiter({ maxKeys: 5 });
+
+    for (let i = 0; i < 100; i += 1) {
+      await limiter.hit(`atacante-${i}@exemplo.test`, REGRA);
+    }
+
+    expect(limiter.size?.()).toBeLessThanOrEqual(5);
+  });
+
+  it("continua contando certo depois da poda", async () => {
+    const limiter = createMemoryRateLimiter({ maxKeys: 5 });
+
+    for (let i = 0; i < 50; i += 1) await limiter.hit(`ruido-${i}`, REGRA);
+
+    for (let i = 0; i < 3; i += 1) await limiter.hit("chave-real", REGRA);
+    expect((await limiter.hit("chave-real", REGRA)).ok).toBe(false);
+  });
+});

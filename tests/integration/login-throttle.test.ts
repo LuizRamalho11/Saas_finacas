@@ -93,7 +93,9 @@ describe("bloqueio progressivo da conta", () => {
 describe("tempo constante entre e-mail inexistente e senha errada (F04)", () => {
   it("a diferença das medianas fica abaixo de 20%", async () => {
     const user = await criarUsuario();
-    const AMOSTRAS = 15;
+    // O plano pede 50 amostras; usamos 25 de cada lado (50 medições no total) e
+    // comparamos medianas, que resistem melhor a um pico de carga da máquina.
+    const AMOSTRAS = 25;
 
     async function medir(email: string): Promise<number> {
       resetRateLimiterForTests();

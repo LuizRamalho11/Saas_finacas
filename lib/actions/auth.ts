@@ -54,7 +54,7 @@ export const logoutAction = definePublicAction({
   name: "logoutAction",
   async handler({ user }) {
     if (user?.sessionId) {
-      await closeSession(user.sessionId);
+      await closeSession(user.sessionId, user.id);
     }
     await signOut({ redirect: false });
     // O wrapper deixa passar o sinal de redirecionamento do Next.

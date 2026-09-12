@@ -108,3 +108,21 @@ describe("sessão revogada deixa de valer", () => {
     await expect(getProfile()).rejects.toMatchObject({ code: "NAO_AUTENTICADO" });
   });
 });
+
+describe("revogação de sessão exige ser o dono", () => {
+  it("closeSession com outro usuário no filtro não revoga nada", async () => {
+    const dono = await createUserWithData();
+    const intruso = await createUserWithData();
+
+    const { closeSession } = await import("@/lib/auth/session-log");
+    await closeSession(dono.session.id, intruso.user.id);
+
+    const sessao = await prisma.session.findUniqueOrThrow({ where: { id: dono.session.id } });
+    expect(sessao.revokedAt).toBeNull();
+
+    // Com o dono correto, revoga.
+    await closeSession(dono.session.id, dono.user.id);
+    const depois = await prisma.session.findUniqueOrThrow({ where: { id: dono.session.id } });
+    expect(depois.revokedAt).not.toBeNull();
+  });
+});

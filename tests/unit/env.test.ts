@@ -55,3 +55,21 @@ describe("lib/env", () => {
     await expect(loadEnv({ AUTH_TRUST_HOST: "sim" })).rejects.toThrow(/AUTH_TRUST_HOST/);
   });
 });
+
+describe("variável vazia é tratada como ausente", () => {
+  it("DEMO_PASSWORD vazio não quebra a validação", async () => {
+    const { env } = await loadEnv({ DEMO_PASSWORD: "" });
+    expect(env.DEMO_PASSWORD).toBeUndefined();
+  });
+
+  it("credenciais do Upstash vazias caem para o limitador em memória", async () => {
+    const { env } = await loadEnv({ UPSTASH_REDIS_REST_URL: "", UPSTASH_REDIS_REST_TOKEN: "" });
+    expect(env.UPSTASH_REDIS_REST_URL).toBeUndefined();
+    expect(env.UPSTASH_REDIS_REST_TOKEN).toBeUndefined();
+  });
+
+  it("mas valor inválido de verdade continua reprovando", async () => {
+    await expect(loadEnv({ DEMO_PASSWORD: "curta" })).rejects.toThrow(/DEMO_PASSWORD/);
+    await expect(loadEnv({ UPSTASH_REDIS_REST_URL: "nao-e-url" })).rejects.toThrow(/UPSTASH_REDIS_REST_URL/);
+  });
+});

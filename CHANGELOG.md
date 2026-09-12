@@ -4,6 +4,9 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 ## [Não publicado]
 
+### Corrigido
+- Revisão de segurança da Fase 1: limitador em memória passou a podar janelas vencidas e respeitar um teto de chaves (era um vetor de DoS de memória); a rota que limpa o cookie de sessão só age em navegação de verdade (era CSRF de logout por `<img src>`); `closeSession` passou a exigir o dono; variável de ambiente vazia é tratada como ausente; e a tela de erro voltou a reconhecer falha de sessão.
+
 ### Alterado
 - Banco com integridade de verdade: `type`, `status` e `Account.type` viraram enums do PostgreSQL, dinheiro ficou em `Decimal(14,2)` com `CHECK (amount > 0)`, e apagar conta com lançamentos passou a ser bloqueado pelo banco (`onDelete: Restrict`), não só pela aplicação (T1.8, F14/F15).
 - Totais somados em `Decimal` ou no próprio SQL (`lib/money.ts`); `number` só na borda, para gráfico e texto (T1.8, F16).
