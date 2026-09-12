@@ -113,6 +113,6 @@ jobs:
       - name: Vulnerabilidades conhecidas
         run: npm audit --audit-level=high
       - name: Segredos no histórico
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
