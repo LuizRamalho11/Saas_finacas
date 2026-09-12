@@ -5,6 +5,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 ## [Não publicado]
 
 ### Segurança
+- Cabeçalhos de segurança em todas as respostas: HSTS (só em produção), `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy` e `Cross-Origin-Opener-Policy`; `X-Powered-By` deixou de ser enviado. A CSP entra em modo relatório, com a versão bloqueante por nonce prevista para a T5.1 (T1.5, F08).
 - Login com rate limit (5/min por IP, 10/15 min por e-mail), bloqueio progressivo da conta (15 min, 1 h, 24 h a partir da 10ª falha seguida) e tempo de resposta igual para e-mail inexistente e senha errada (T1.4, F03/F04).
 - O IP do histórico de acesso e do rate limit deixa de sair de um cabeçalho que o cliente controla: só é aceito o proxy declarado em `TRUSTED_PROXY` (T1.4, F17).
 - Open redirect fechado: `?redirectTo=` passa por `safeRedirect()`, que só aceita caminho relativo de uma rota interna conhecida. Destino externo cai no dashboard (T1.3, F02).

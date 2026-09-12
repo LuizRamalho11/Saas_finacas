@@ -210,7 +210,7 @@ Formato de cada tarefa: **Por quê** · **Arquivos** · **Passos** · **Aceite**
   5. Mensagem ao usuário continua genérica; quando bloqueado, informar "Muitas tentativas. Tente novamente em alguns minutos."
 - **Aceite / Testes:** 6ª tentativa em 1 min retorna 429/erro de limite; diferença de tempo médio entre "e-mail inexistente" e "senha errada" < 20 % em 50 amostras (teste de integração tolerante).
 
-#### - [ ] T1.5 — Cabeçalhos de segurança (primeira versão)
+#### - [x] T1.5 — Cabeçalhos de segurança (primeira versão) *(feito em 12/09/2026)*
 - **Por quê:** F08.
 - **Arquivos:** `next.config.mjs`.
 - **Passos:** `poweredByHeader: false`; `headers()` com `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload` (só em produção), `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()`, `X-Frame-Options: DENY`, `Cross-Origin-Opener-Policy: same-origin`. CSP completa com nonce fica na T5.1; aqui, uma CSP inicial em modo `Content-Security-Policy-Report-Only`.
