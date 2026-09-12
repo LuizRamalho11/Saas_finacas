@@ -23,3 +23,5 @@ test-results
 
 # Sistema operacional
 .DS_Store
+
+.postgres-e2e

@@ -48,8 +48,16 @@ const config = [
 
   // Scripts de infraestrutura e seed rodam no terminal: printar é o objetivo.
   {
-    files: ["scripts/**", "prisma/**", "*.mjs", "*.ts"],
+    files: ["scripts/**", "prisma/**", "tests/**", "e2e/**", "*.mjs", "*.ts"],
     rules: { "no-console": "off" },
+  },
+
+  // Infraestrutura de teste e scripts locais mexem em caminhos fixos do próprio
+  // repositório (o diretório do cluster de teste, por exemplo). Não há entrada
+  // de usuário envolvida, que é o risco que esta regra existe para pegar.
+  {
+    files: ["tests/**", "scripts/**", "e2e/**"],
+    rules: { "security/detect-non-literal-fs-filename": "off" },
   },
 
   // Desliga as regras de formatação: quem formata é o Prettier.

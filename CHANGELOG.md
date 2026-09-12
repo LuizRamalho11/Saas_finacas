@@ -5,6 +5,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 ## [Não publicado]
 
 ### Adicionado
+- Infraestrutura de testes: Vitest com os projetos `unit` e `integration` (PostgreSQL embarcado próprio, migrations e tabelas limpas entre testes), factories, e Playwright com banco e servidor isolados. Primeiros testes: `parseAmount`, schemas Zod, `lib/env.ts`, isolamento de lançamentos entre usuários e login/logout ponta a ponta (T0.5).
 - `lib/env.ts`: variáveis de ambiente validadas com Zod na partida do servidor (via `instrumentation.ts`), com mensagens em pt-BR que nunca citam o valor. `AUTH_SECRET` e `AUTH_TRUST_HOST` deixam de ser fixos no código e `APP_URL` passa a existir (T0.4, F18).
 - ESLint 9 em config flat (`eslint-config-next`, `eslint-plugin-security`), Prettier com o plugin do Tailwind e os scripts `lint`, `format`, `format:check` e `typecheck` (T0.3).
 - Regra de lint própria que impede importar o cliente Prisma em arquivo `"use client"` (T0.3).

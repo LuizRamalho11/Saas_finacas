@@ -152,7 +152,7 @@ Formato de cada tarefa: **Por quê** · **Arquivos** · **Passos** · **Aceite**
 - **Passos:** schema Zod separando `server` e `client` (`NEXT_PUBLIC_*`); validar na inicialização; `AUTH_TRUST_HOST` e `APP_URL` vindos do ambiente; nunca acessar `process.env` fora de `lib/env.ts`. Documentar cada variável no `.env.example`.
 - **Aceite:** remover `DATABASE_URL` faz o servidor falhar na partida com mensagem legível; `grep -r "process.env" --include=*.ts* app lib components` só encontra `lib/env.ts`.
 
-#### - [ ] T0.5 — Infraestrutura de testes
+#### - [x] T0.5 — Infraestrutura de testes *(feito em 12/09/2026)*
 - **Arquivos:** `vitest.config.ts`, `tests/setup/db.ts`, `tests/factories/*`, `playwright.config.ts`, `e2e/*`.
 - **Passos:**
   1. Vitest com dois projetos: `unit` (sem banco) e `integration` (sobe `embedded-postgres` numa porta própria, roda `prisma migrate deploy`, trunca tabelas entre testes).

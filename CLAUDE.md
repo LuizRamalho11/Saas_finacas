@@ -18,8 +18,10 @@ Prisma 7 (driver adapter `pg`) · PostgreSQL · Auth.js v5 (migração para Bett
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint 9 (config flat). Qualquer aviso já reprova. |
 | `npm run format` | Prettier no projeto (`format:check` só confere). |
+| `npm test` | Vitest: projeto `unit` (sem banco) e `integration` (Postgres próprio na 55433). |
+| `npm run e2e` | Playwright: sobe banco e servidor próprios na 3100. |
 
-Ainda **não existem** (criados na Fase 0): `test`, `e2e` (T0.5) e CI (T0.6).
+Ainda **não existe** (criado na Fase 0): CI (T0.6).
 
 ## Mapa do código
 - `auth.ts`, `middleware.ts`, `lib/auth/*` — autenticação, guard `requireUser()`, sessões e histórico

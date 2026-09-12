@@ -49,6 +49,22 @@ arquivo da aplicação lê `process.env` — importe `env` de `lib/env.ts`.
 | `npm run lint` | ESLint 9 em todo o projeto; qualquer aviso reprova. |
 | `npm run typecheck` | `tsc --noEmit`. |
 | `npm run format` | Formata com Prettier (`npm run format:check` só confere). |
+| `npm test` | Vitest (unitários + integração com PostgreSQL de verdade). |
+| `npm run e2e` | Playwright (ponta a ponta, com banco e servidor próprios). |
+
+### Testes
+
+`npm test` roda dois projetos do Vitest: `unit` (sem banco) e `integration`,
+que sobe um PostgreSQL embarcado na porta 55433, aplica as migrations e limpa
+as tabelas entre os testes. `npm run e2e` sobe outro banco (55434) e um Next
+próprio na porta 3100, com diretório de build separado — dá para rodar com o
+`npm run dev` aberto. Nenhum dos dois encosta no banco de desenvolvimento.
+
+Numa máquina nova, antes do primeiro `npm run e2e`:
+
+```bash
+npx playwright install chromium
+```
 
 **Usando um Postgres gerenciado:** troque só a `DATABASE_URL` no `.env` e rode
 `npm run db:migrate && npm run db:seed`. Nada mais muda — nem código, nem
