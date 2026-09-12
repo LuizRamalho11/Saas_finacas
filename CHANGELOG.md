@@ -4,6 +4,10 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 ## [Não publicado]
 
+### Alterado
+- Banco com integridade de verdade: `type`, `status` e `Account.type` viraram enums do PostgreSQL, dinheiro ficou em `Decimal(14,2)` com `CHECK (amount > 0)`, e apagar conta com lançamentos passou a ser bloqueado pelo banco (`onDelete: Restrict`), não só pela aplicação (T1.8, F14/F15).
+- Totais somados em `Decimal` ou no próprio SQL (`lib/money.ts`); `number` só na borda, para gráfico e texto (T1.8, F16).
+
 ### Segurança
 - Demonstração e produção separadas por `APP_MODE`: credenciais preenchidas e aviso de demonstração só aparecem em `demo`; o seed se recusa a rodar em produção (ou fora do modo demo) sem `--force-demo`, e a senha do usuário de demonstração saiu do código para o `.env` (T1.7, F10).
 - Importação de CSV: a confirmação recebe as linhas cruas e o servidor refaz toda a validação (valor, data, tipo, status, posse da categoria e da conta), em vez de confiar no que o cliente diz ter conferido. Teto de 5.000 linhas e 2 MB por importação, gravação em transação única (T1.6, F06).

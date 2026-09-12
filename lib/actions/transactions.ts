@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { Prisma } from "@prisma/client";
+import { Prisma, type TransactionStatus, type TransactionType } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { defineAction } from "@/lib/server/action";
@@ -184,8 +184,20 @@ export interface ImportRow {
 }
 
 export interface ImportPreview {
-  valid: (ImportRow & { categoryId: string; accountId: string; amountValue: number })[];
+  valid: (ImportRow & {
+    categoryId: string;
+    accountId: string;
+    amountValue: number;
+    type: TransactionType;
+    status?: TransactionStatus;
+  })[];
   invalid: { line: number; row: ImportRow; error: string }[];
+}
+
+/** O status do arquivo é texto livre: o que não for reconhecido vira concluído. */
+function toStatus(value: string | undefined): TransactionStatus {
+  const allowed: TransactionStatus[] = ["pending", "completed", "canceled"];
+  return allowed.find((status) => status === value) ?? "completed";
 }
 
 /** Teto do arquivo importado: acima disso vira extração em massa e trabalho de DoS. */
@@ -245,7 +257,7 @@ async function resolveImportRows(userId: string, rows: ImportRow[]): Promise<Imp
         description: row.description,
         amount: row.amount,
         type: normalizedType,
-        status: row.status && ["pending", "completed", "canceled"].includes(row.status) ? row.status : "completed",
+        status: toStatus(row.status),
         categoryId: "placeholder",
         accountId: "placeholder",
         date: row.date,
@@ -283,6 +295,7 @@ async function resolveImportRows(userId: string, rows: ImportRow[]): Promise<Imp
       preview.valid.push({
         ...row,
         type: normalizedType,
+        status: toStatus(row.status),
         categoryId: category.id,
         accountId: account.id,
         amountValue: parsed.data.amount,
@@ -327,7 +340,7 @@ export const confirmImport = defineAction({
       description: row.description.trim(),
       amount: new Prisma.Decimal(row.amountValue.toFixed(2)),
       type: row.type,
-      status: row.status && ["pending", "completed", "canceled"].includes(row.status) ? row.status : "completed",
+      status: toStatus(row.status),
       date: new Date(`${row.date}T12:00:00.000Z`),
       notes: "Importado via CSV",
     }));

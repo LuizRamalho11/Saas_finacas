@@ -84,6 +84,11 @@ scripts, nem o `npm run db:local` precisa existir no seu fluxo.
 
 ## Modelo de dados
 
+`type`, `status` e `Account.type` são enums do PostgreSQL; `amount` é `Decimal(14,2)`
+com `CHECK (amount > 0)` — o sinal vem do tipo do lançamento. Apagar uma conta com
+lançamentos é bloqueado pelo banco: a realocação passa pela aplicação.
+
+
 Seis entidades, todas isoladas por `userId`:
 
 ```

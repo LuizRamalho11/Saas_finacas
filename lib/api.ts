@@ -21,6 +21,7 @@ import {
 } from "@/lib/server/schemas";
 import { addDays, periodWindow, startOfUtcDay, toISODate } from "@/lib/periods";
 import { colorForIndex } from "@/lib/palette";
+import { divideMoney, money, subtractMoney, sumMoney, toNumber, ZERO, type Money } from "@/lib/money";
 import { transactionWhereFor } from "@/lib/actions/query-helpers";
 import type {
   Account,
@@ -40,8 +41,32 @@ import type {
 /** Lançamentos cancelados existem no extrato mas não entram em nenhuma métrica. */
 const ACTIVE = { not: "canceled" } as const;
 
+/**
+ * `num` e `sum` existem só para o que vira pixel: agrupamento de pontos de
+ * gráfico e média de sparkline. Todo total que o usuário lê é somado em
+ * `Decimal` (lib/money.ts) — ver F16.
+ */
 const num = (value: Prisma.Decimal | number | null | undefined) => Number(value ?? 0);
 const sum = (values: number[]) => values.reduce((acc, value) => acc + value, 0);
+
+/** Quantidade de dias de uma janela de período, contando as duas pontas. */
+function periodDays(window: { from: Date; to: Date }): number {
+  return Math.round((window.to.getTime() - window.from.getTime()) / 86_400_000) + 1;
+}
+
+/** Totais do período somados no banco, em numeric — nunca em ponto flutuante. */
+async function periodTotals(userId: string, from: Date, to: Date): Promise<{ revenue: Money; expense: Money }> {
+  const [row] = await prisma.$queryRaw<{ revenue: string; expense: string }[]>`
+    SELECT COALESCE(SUM(CASE WHEN "type" = 'income'  THEN "amount" END), 0)::text AS revenue,
+           COALESCE(SUM(CASE WHEN "type" = 'expense' THEN "amount" END), 0)::text AS expense
+      FROM "Transaction"
+     WHERE "userId" = ${userId}
+       AND "status" <> 'canceled'
+       AND "date" >= ${from}
+       AND "date" <= ${to}`;
+
+  return { revenue: money(row?.revenue), expense: money(row?.expense) };
+}
 
 function pctChange(current: number, previous: number) {
   if (previous === 0) return 0;
@@ -120,10 +145,11 @@ export const getKpis = defineQuery({
     const previous = periodWindow(period, 1);
     const before = periodWindow(period, 2);
 
-    const [currentSeries, previousSeries, beforeSeries, currentCount, previousCount] = await Promise.all([
+    const [currentSeries, currentMoney, previousMoney, beforeMoney, currentCount, previousCount] = await Promise.all([
       dailySeries(user.id, current.from, current.to),
-      dailySeries(user.id, previous.from, previous.to),
-      dailySeries(user.id, before.from, before.to),
+      periodTotals(user.id, current.from, current.to),
+      periodTotals(user.id, previous.from, previous.to),
+      periodTotals(user.id, before.from, before.to),
       prisma.transaction.count({
         where: { userId: user.id, type: "income", status: ACTIVE, date: { gte: current.from, lte: current.to } },
       }),
@@ -132,23 +158,24 @@ export const getKpis = defineQuery({
       }),
     ]);
 
-    const revenue = sum(currentSeries.map((p) => p.revenue));
-    const prevRevenue = sum(previousSeries.map((p) => p.revenue));
-    const expense = sum(currentSeries.map((p) => p.expense));
-    const prevExpense = sum(previousSeries.map((p) => p.expense));
-    const profit = revenue - expense;
-    const prevProfit = prevRevenue - prevExpense;
+    // Somado no banco: a partir daqui só converte para número na borda.
+    const revenue = toNumber(currentMoney.revenue);
+    const prevRevenue = toNumber(previousMoney.revenue);
+    const expense = toNumber(currentMoney.expense);
+    const prevExpense = toNumber(previousMoney.expense);
+    const profit = toNumber(subtractMoney(currentMoney.revenue, currentMoney.expense));
+    const prevProfit = toNumber(subtractMoney(previousMoney.revenue, previousMoney.expense));
 
     const days = currentSeries.length || 1;
-    const prevDays = previousSeries.length || 1;
+    const prevDays = periodDays(previous) || 1;
     const cashFlow = (profit / days) * 30;
     const prevCashFlow = (prevProfit / prevDays) * 30;
 
-    const ticket = currentCount > 0 ? revenue / currentCount : 0;
-    const prevTicket = previousCount > 0 ? prevRevenue / previousCount : 0;
+    const ticket = currentCount > 0 ? toNumber(divideMoney(currentMoney.revenue, currentCount)) : 0;
+    const prevTicket = previousCount > 0 ? toNumber(divideMoney(previousMoney.revenue, previousCount)) : 0;
 
     const growth = pctChange(revenue, prevRevenue);
-    const prevGrowth = pctChange(prevRevenue, sum(beforeSeries.map((p) => p.revenue)));
+    const prevGrowth = pctChange(prevRevenue, toNumber(beforeMoney.revenue));
 
     return [
       {
@@ -240,7 +267,8 @@ async function categoryTotals(userId: string, type: "income" | "expense", from: 
     where: { userId, type, status: ACTIVE, date: { gte: from, lte: to } },
     _sum: { amount: true },
   });
-  return new Map(grouped.map((row) => [row.categoryId, num(row._sum.amount)]));
+  // Mantém Decimal: quem usa decide quando virar número.
+  return new Map(grouped.map((row) => [row.categoryId, money(row._sum.amount)]));
 }
 
 export const getExpensesByCategory = defineQuery({
@@ -256,19 +284,20 @@ export const getExpensesByCategory = defineQuery({
       categoryTotals(user.id, "expense", previous.from, previous.to),
     ]);
 
-    const total = sum([...currentTotals.values()]);
+    const total = sumMoney([...currentTotals.values()]);
+    const totalNumber = toNumber(total);
 
     return categories
       .map((category, index) => {
-        const amount = currentTotals.get(category.id) ?? 0;
+        const amount = toNumber(currentTotals.get(category.id) ?? ZERO);
         return {
           id: category.id,
           label: category.name,
           short: shortLabel(category.name),
           amount,
-          share: total > 0 ? amount / total : 0,
+          share: totalNumber > 0 ? amount / totalNumber : 0,
           color: category.color ?? colorForIndex(index),
-          trend: pctChange(amount, previousTotals.get(category.id) ?? 0),
+          trend: pctChange(amount, toNumber(previousTotals.get(category.id) ?? ZERO)),
         };
       })
       .filter((slice) => slice.amount > 0)
@@ -293,16 +322,19 @@ export const getRevenueSources = defineQuery({
       categoryTotals(user.id, "income", from, to),
     ]);
 
-    const total = sum([...totals.values()]);
+    const total = toNumber(sumMoney([...totals.values()]));
 
     return categories
-      .map((category, index) => ({
-        id: category.id,
-        label: category.name,
-        amount: totals.get(category.id) ?? 0,
-        share: total > 0 ? (totals.get(category.id) ?? 0) / total : 0,
-        color: category.color ?? colorForIndex(index),
-      }))
+      .map((category, index) => {
+        const amount = toNumber(totals.get(category.id) ?? ZERO);
+        return {
+          id: category.id,
+          label: category.name,
+          amount,
+          share: total > 0 ? amount / total : 0,
+          color: category.color ?? colorForIndex(index),
+        };
+      })
       .filter((source) => source.amount > 0)
       .sort((a, b) => b.amount - a.amount);
   },
@@ -319,25 +351,25 @@ export const getGoal = defineQuery({
     const current = periodWindow(period);
     const previous = periodWindow(period, 1);
 
-    const [currentSeries, previousSeries, accounts] = await Promise.all([
-      dailySeries(user.id, current.from, current.to),
-      dailySeries(user.id, previous.from, previous.to),
+    const [currentMoney, previousMoney, accounts] = await Promise.all([
+      periodTotals(user.id, current.from, current.to),
+      periodTotals(user.id, previous.from, previous.to),
       listAccountBalances(user.id),
     ]);
 
-    const revenue = sum(currentSeries.map((p) => p.revenue));
-    const expense = sum(currentSeries.map((p) => p.expense));
-    const days = currentSeries.length || 1;
+    const revenue = toNumber(currentMoney.revenue);
+    const expense = toNumber(currentMoney.expense);
+    const days = periodDays(current) || 1;
 
     const margin = revenue > 0 ? (revenue - expense) / revenue : 0;
     const marginScore = clamp01(margin / 0.3); // 30% de margem = nota cheia
 
-    const cash = sum(accounts.map((account) => account.balance));
+    const cash = toNumber(sumMoney(accounts.map((account) => account.balance)));
     const monthlyBurn = (expense / days) * 30;
     const runwayMonths = monthlyBurn > 0 ? cash / monthlyBurn : 12;
     const liquidityScore = clamp01(runwayMonths / 6); // 6 meses de caixa = nota cheia
 
-    const growth = pctChange(revenue, sum(previousSeries.map((p) => p.revenue)));
+    const growth = pctChange(revenue, toNumber(previousMoney.revenue));
     const growthScore = clamp01((growth + 5) / 20);
 
     const score = Math.round((marginScore * 0.5 + liquidityScore * 0.3 + growthScore * 0.2) * 100);
@@ -411,17 +443,19 @@ async function listAccountBalances(userId: string): Promise<Account[]> {
     }),
   ]);
 
-  const movement = new Map<string, number>();
+  // Saldo é dinheiro: soma em Decimal e só vira número ao sair daqui.
+  const movement = new Map<string, Money>();
   for (const row of grouped) {
-    const signed = row.type === "income" ? num(row._sum.amount) : -num(row._sum.amount);
-    movement.set(row.accountId, (movement.get(row.accountId) ?? 0) + signed);
+    const amount = money(row._sum.amount);
+    const signed = row.type === "income" ? amount : amount.negated();
+    movement.set(row.accountId, (movement.get(row.accountId) ?? ZERO).plus(signed));
   }
 
   return accounts.map((account) => ({
     id: account.id,
     label: account.name,
     institution: account.institution ?? "",
-    balance: num(account.openingBalance) + (movement.get(account.id) ?? 0),
+    balance: toNumber(money(account.openingBalance).plus(movement.get(account.id) ?? ZERO)),
     kind: normalizeAccountKind(account.type),
   }));
 }
@@ -484,10 +518,14 @@ export const getCashFlow = defineQuery({
        ORDER BY 1`,
     ]);
 
-    let balance = sum(accounts.map((account) => num(account.openingBalance)));
-    for (const row of priorMovement) {
-      balance += row.type === "income" ? num(row._sum.amount) : -num(row._sum.amount);
-    }
+    // Saldo de abertura somado em Decimal; a partir daí a série é gráfico.
+    const openingBalance = accounts.reduce<Money>((total, account) => total.plus(money(account.openingBalance)), ZERO);
+    const priorBalance = priorMovement.reduce<Money>((total, row) => {
+      const amount = money(row._sum.amount);
+      return total.plus(row.type === "income" ? amount : amount.negated());
+    }, openingBalance);
+
+    let balance = toNumber(priorBalance);
 
     const byDay = new Map(
       rows.map((row) => [toISODate(new Date(row.day)), { inflow: Number(row.inflow), outflow: Number(row.outflow) }]),

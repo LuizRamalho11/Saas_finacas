@@ -1,12 +1,13 @@
-import type { Prisma } from "@prisma/client";
+import type { Prisma, TransactionStatus, TransactionType } from "@prisma/client";
 import { PERIOD_DAYS, addDays, startOfUtcDay } from "@/lib/periods";
 import type { Period } from "@/types";
 
 export interface TransactionFilters {
   search?: string;
   categoryId?: string;
-  status?: string;
-  type?: string;
+  /** "all" é a opção da interface; o resto vem do enum do banco. */
+  status?: TransactionStatus | "all";
+  type?: TransactionType | "all";
   period?: string;
   accountId?: string;
 }

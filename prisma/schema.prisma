@@ -9,6 +9,26 @@ datasource db {
   provider = "postgresql"
 }
 
+/// Entrada ou saída. Antes era texto livre, sem nada no banco impedindo um
+/// terceiro valor entrar por uma escrita fora da aplicação (F15).
+enum TransactionType {
+  income
+  expense
+}
+
+enum TransactionStatus {
+  pending
+  completed
+  canceled
+}
+
+enum AccountType {
+  checking
+  savings
+  credit_card
+  investment
+}
+
 model User {
   id           String   @id @default(cuid())
   name         String
@@ -79,7 +99,7 @@ model Account {
   id           String   @id @default(cuid())
   userId       String
   name         String
-  type         String   @default("checking") // checking | savings | credit_card | investment
+  type         AccountType @default(checking)
   institution  String?
   openingBalance Decimal @default(0) @db.Decimal(14, 2)
   archived     Boolean  @default(false)
@@ -97,7 +117,7 @@ model Category {
   id        String   @id @default(cuid())
   userId    String
   name      String
-  type      String // income | expense
+  type      TransactionType
   /// Hex usado nos gráficos; nulo cai na paleta padrão por índice.
   color     String?
   icon      String?
@@ -118,9 +138,10 @@ model Transaction {
   categoryId  String
   description String
   counterparty String?
-  amount      Decimal  @db.Decimal(12, 2)
-  type        String // income | expense
-  status      String   @default("completed") // pending | completed | canceled
+  /// Mesma precisão de Account.openingBalance; sempre positivo (CHECK no banco).
+  amount      Decimal  @db.Decimal(14, 2)
+  type        TransactionType
+  status      TransactionStatus @default(completed)
   method      String?
   date        DateTime
   notes       String?
@@ -128,7 +149,9 @@ model Transaction {
   updatedAt   DateTime @updatedAt
 
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  account  Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  /// Restrict, e não Cascade: apagar uma conta nunca pode levar junto o
+  /// histórico financeiro. A realocação é feita pela aplicação (F14).
+  account  Account  @relation(fields: [accountId], references: [id], onDelete: Restrict)
   category Category @relation(fields: [categoryId], references: [id])
 
   @@index([userId, date])

@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { Prisma } from "@prisma/client";
+import { Prisma, type TransactionStatus, type TransactionType } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 /** Cada chamada gera nomes e e-mails únicos, para não esbarrar nos índices. */
@@ -46,8 +46,8 @@ export async function createTransaction(
   } & Partial<{
     description: string;
     amount: number;
-    type: string;
-    status: string;
+    type: TransactionType;
+    status: TransactionStatus;
     date: Date;
   }>,
 ) {

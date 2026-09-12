@@ -231,7 +231,7 @@ Formato de cada tarefa: **Por quê** · **Arquivos** · **Passos** · **Aceite**
 - **Passos:** `APP_MODE=demo|production` em `lib/env.ts`; credenciais pré-preenchidas e o texto "Ambiente de demonstração" só em `demo`; o seed se recusa a rodar com `NODE_ENV=production` sem flag explícita `--force-demo`; senha do usuário demo vem de env.
 - **Aceite:** em `production`, o formulário abre vazio e o seed aborta.
 
-#### - [ ] T1.8 — Integridade de dados no banco
+#### - [x] T1.8 — Integridade de dados no banco *(feito em 12/09/2026)*
 - **Por quê:** F14, F15, F16.
 - **Arquivos:** `prisma/schema.prisma`, nova migration, `lib/money.ts`, `lib/api.ts`.
 - **Passos:**

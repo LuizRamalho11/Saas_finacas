@@ -9,7 +9,7 @@
  */
 import "dotenv/config";
 import bcrypt from "bcryptjs";
-import { Prisma } from "@prisma/client";
+import { Prisma, type AccountType } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { env } from "../lib/env";
 import { assertSeedAllowed, SeedRefused } from "../lib/server/demo";
@@ -100,7 +100,7 @@ const EXPENSE_CATEGORIES = [
   { name: "Software e ferramentas", color: CATEGORY_COLORS[8].hex, icon: "package", daily: 0.1 },
 ];
 
-const ACCOUNTS = [
+const ACCOUNTS: { name: string; type: AccountType; institution: string; openingBalance: number }[] = [
   { name: "Conta Principal", type: "checking", institution: "Banco Aurora", openingBalance: 420_000 },
   { name: "Reserva de Caixa", type: "savings", institution: "Banco Aurora", openingBalance: 600_000 },
   { name: "Cartão Corporativo", type: "credit_card", institution: "Cartão Vértice", openingBalance: 0 },
