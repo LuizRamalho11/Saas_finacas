@@ -2,6 +2,7 @@ import "server-only";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { AppError } from "@/lib/server/errors";
 
 export interface CurrentUser {
   id: string;
@@ -22,7 +23,7 @@ export interface CurrentUser {
 export async function requireUser(): Promise<CurrentUser> {
   const session = await auth();
   if (!session?.user?.id) {
-    throw new Error("NAO_AUTENTICADO");
+    throw new AppError("NAO_AUTENTICADO");
   }
 
   const user = await prisma.user.findUnique({
@@ -39,7 +40,7 @@ export async function requireUser(): Promise<CurrentUser> {
     },
   });
 
-  if (!user) throw new Error("NAO_AUTENTICADO");
+  if (!user) throw new AppError("NAO_AUTENTICADO");
 
   return { ...user, sessionId: session.user.sessionId };
 }

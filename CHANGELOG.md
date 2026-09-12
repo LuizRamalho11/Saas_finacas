@@ -4,6 +4,10 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 ## [Não publicado]
 
+### Segurança
+- `defineAction`/`defineQuery`/`definePublicAction`: toda função exportada de arquivo `"use server"` passa por um wrapper que resolve a sessão, valida os parâmetros com Zod e traduz erros. Parâmetros de leitura ganharam teto (`pageSize` ≤ 100, `months` ≤ 36, `limit` ≤ 50, importação ≤ 5.000 linhas), fechando a extração em massa do achado F05 (T1.1).
+- Erro inesperado não vaza mais detalhe interno para a interface: vira mensagem genérica em pt-BR com um `requestId` no log do servidor (T1.1).
+
 ### Corrigido
 - Cinco vulnerabilidades altas herdadas de dependências transitivas (`postcss` dentro do Next, `mysql2` e `deepmerge-ts` dentro do Prisma), resolvidas por `overrides` sem mudar as versões do Next e do Prisma (T0.6, ADR-013).
 

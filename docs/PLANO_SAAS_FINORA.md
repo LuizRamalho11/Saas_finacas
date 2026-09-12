@@ -175,7 +175,7 @@ Formato de cada tarefa: **Por quê** · **Arquivos** · **Passos** · **Aceite**
 
 > Objetivo: fechar as brechas **antes** de construir em cima. Ainda com Auth.js; a Fase 2 migra a autenticação.
 
-#### - [ ] T1.1 — `defineAction`: wrapper seguro para Server Actions
+#### - [x] T1.1 — `defineAction`: wrapper seguro para Server Actions *(feito em 12/09/2026)*
 - **Por quê:** F05. Centralizar autenticação, validação, limites e tratamento de erro.
 - **Arquivos:** `lib/server/action.ts`, `lib/server/errors.ts`, todos os arquivos em `lib/actions/` e `lib/api.ts`.
 - **Passos:**

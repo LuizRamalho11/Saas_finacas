@@ -129,7 +129,9 @@ export function TransactionForm({
       notes: form.notes,
     };
 
-    const result = transaction ? await updateTransaction(transaction.id, payload) : await createTransaction(payload);
+    const result = transaction
+      ? await updateTransaction({ id: transaction.id, data: payload })
+      : await createTransaction(payload);
 
     setSaving(false);
 

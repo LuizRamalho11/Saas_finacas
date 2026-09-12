@@ -205,7 +205,7 @@ function AccountForm({
     setSaving(true);
     setErrors({});
 
-    const result = account ? await updateAccount(account.id, form) : await createAccount(form);
+    const result = account ? await updateAccount({ id: account.id, data: form }) : await createAccount(form);
     setSaving(false);
 
     if (!result.ok) {
@@ -332,7 +332,7 @@ function DeleteAccountDialog({
     }
 
     setDeleting(true);
-    const result = await deleteAccount(account.id, reassignTo || undefined);
+    const result = await deleteAccount({ id: account.id, reassignToId: reassignTo || undefined });
     setDeleting(false);
 
     if (!result.ok) {

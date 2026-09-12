@@ -16,6 +16,9 @@ export default defineConfig({
       { find: /^@\//, replacement: rootDir },
       // Fora do Next, `server-only` lança sempre; nos testes vira um módulo vazio.
       { find: /^server-only$/, replacement: path.join(rootDir, "tests/stubs/server-only.ts") },
+      // O next-auth importa "next/server" sem extensão, que o resolvedor do Vite
+      // não encontra pelo mapa de exports do Next.
+      { find: /^next\/server$/, replacement: "next/server.js" },
     ],
   },
   test: {
@@ -39,6 +42,9 @@ export default defineConfig({
           // Um banco só: os arquivos rodam em série para não truncar tabelas
           // debaixo do teste vizinho.
           fileParallelism: false,
+          // O next-auth importa "next/server" sem extensão; processado pelo Vite,
+          // o alias acima resolve. Externalizado, ele quebraria no loader do Node.
+          server: { deps: { inline: [/next-auth/, /@auth\//] } },
           testTimeout: 20_000,
           env: {
             DATABASE_URL: TEST_DATABASE_URL,

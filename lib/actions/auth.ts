@@ -5,83 +5,85 @@ import { AuthError } from "next-auth";
 import { z } from "zod";
 import { signIn, signOut } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth/guard";
 import { closeSession, expireStaleSessions } from "@/lib/auth/session-log";
-import { profileSchema, fieldErrorsFrom, type ActionResult } from "@/lib/validation";
+import { defineAction, definePublicAction, defineQuery } from "@/lib/server/action";
+import { AppError } from "@/lib/server/errors";
+import { limitSchema } from "@/lib/server/schemas";
+import { profileSchema } from "@/lib/validation";
 import type { LoginRecord } from "@/types";
 
 const loginSchema = z.object({
   email: z.email({ error: "Informe um e-mail válido." }),
   password: z.string().min(6, "A senha precisa ter ao menos 6 caracteres."),
+  redirectTo: z.string().max(200).optional(),
 });
 
-export async function loginAction(input: {
-  email: string;
-  password: string;
-  redirectTo?: string;
-}): Promise<ActionResult<undefined>> {
-  const parsed = loginSchema.safeParse(input);
-  if (!parsed.success) {
-    return { ok: false, error: "Revise os campos destacados.", fieldErrors: fieldErrorsFrom(parsed.error) };
-  }
-
-  try {
-    await signIn("credentials", {
-      email: parsed.data.email,
-      password: parsed.data.password,
-      redirect: false,
-    });
-  } catch (error) {
-    if (error instanceof AuthError) {
-      // A tentativa já foi registrada em LoginHistory dentro do authorize().
-      return { ok: false, error: "E-mail ou senha incorretos." };
+export const loginAction = definePublicAction({
+  name: "loginAction",
+  input: loginSchema,
+  async handler({ input }) {
+    try {
+      await signIn("credentials", {
+        email: input.email,
+        password: input.password,
+        redirect: false,
+      });
+    } catch (error) {
+      if (error instanceof AuthError) {
+        // A tentativa já foi registrada em LoginHistory dentro do authorize().
+        // A mensagem é a mesma para e-mail inexistente e senha errada, de propósito.
+        throw new AppError("NAO_AUTENTICADO", { message: "E-mail ou senha incorretos.", cause: error });
+      }
+      throw error;
     }
-    throw error;
-  }
 
-  return { ok: true, data: undefined };
-}
+    return undefined;
+  },
+});
 
 /** Encerra a sessão marcando `logoutAt` no histórico antes de limpar o cookie. */
-export async function logoutAction() {
-  try {
-    const user = await requireUser();
-    await closeSession(user.sessionId);
-  } catch {
-    // Sessão já inválida: seguimos para limpar o cookie de qualquer forma.
-  }
-  await signOut({ redirect: false });
-  redirect("/login");
-}
+export const logoutAction = definePublicAction({
+  name: "logoutAction",
+  async handler({ user }) {
+    if (user?.sessionId) {
+      await closeSession(user.sessionId);
+    }
+    await signOut({ redirect: false });
+    // O wrapper deixa passar o sinal de redirecionamento do Next.
+    redirect("/login");
+  },
+});
 
-export async function getLoginHistory(limit = 20): Promise<LoginRecord[]> {
-  const user = await requireUser();
+export const getLoginHistory = defineQuery({
+  name: "getLoginHistory",
+  input: limitSchema.default(20),
+  async handler({ input: limit, user }): Promise<LoginRecord[]> {
+    // Aproveita a visita para fechar sessões que venceram sem logout explícito.
+    await expireStaleSessions(user.id);
 
-  // Aproveita a visita para fechar sessões que venceram sem logout explícito.
-  await expireStaleSessions(user.id);
+    const rows = await prisma.loginHistory.findMany({
+      where: { userId: user.id },
+      orderBy: { loginAt: "desc" },
+      take: limit,
+    });
 
-  const rows = await prisma.loginHistory.findMany({
-    where: { userId: user.id },
-    orderBy: { loginAt: "desc" },
-    take: limit,
-  });
-
-  return rows.map((row) => ({
-    id: row.id,
-    loginAt: row.loginAt.toISOString(),
-    logoutAt: row.logoutAt?.toISOString() ?? null,
-    ipAddress: row.ipAddress,
-    userAgent: row.userAgent,
-    success: row.success,
-    reason: row.reason,
-    current: Boolean(user.sessionId && row.sessionId === user.sessionId && !row.logoutAt),
-  }));
-}
+    return rows.map((row) => ({
+      id: row.id,
+      loginAt: row.loginAt.toISOString(),
+      logoutAt: row.logoutAt?.toISOString() ?? null,
+      ipAddress: row.ipAddress,
+      userAgent: row.userAgent,
+      success: row.success,
+      reason: row.reason,
+      current: Boolean(user.sessionId && row.sessionId === user.sessionId && !row.logoutAt),
+    }));
+  },
+});
 
 /** Revoga todas as outras sessões ativas do usuário. */
-export async function revokeOtherSessions(): Promise<ActionResult<{ count: number }>> {
-  try {
-    const user = await requireUser();
+export const revokeOtherSessions = defineAction({
+  name: "revokeOtherSessions",
+  async handler({ user }) {
     const now = new Date();
 
     const others = await prisma.session.findMany({
@@ -89,7 +91,7 @@ export async function revokeOtherSessions(): Promise<ActionResult<{ count: numbe
       select: { id: true },
     });
 
-    if (!others.length) return { ok: true, data: { count: 0 }, message: "Nenhuma outra sessão ativa." };
+    if (!others.length) return { count: 0 };
 
     const ids = others.map((session) => session.id);
     await prisma.session.updateMany({ where: { id: { in: ids } }, data: { revokedAt: now } });
@@ -98,43 +100,38 @@ export async function revokeOtherSessions(): Promise<ActionResult<{ count: numbe
       data: { logoutAt: now },
     });
 
-    return { ok: true, data: { count: ids.length }, message: `${ids.length} sessão(ões) encerrada(s).` };
-  } catch (error) {
-    console.error(error);
-    return { ok: false, error: "Não foi possível encerrar as outras sessões." };
-  }
-}
+    return { count: ids.length };
+  },
+  message: ({ count }) => (count === 0 ? "Nenhuma outra sessão ativa." : `${count} sessão(ões) encerrada(s).`),
+});
 
-export async function updateProfile(input: unknown): Promise<ActionResult<undefined>> {
-  try {
-    const user = await requireUser();
-    const parsed = profileSchema.safeParse(input);
-    if (!parsed.success) {
-      return { ok: false, error: "Revise os campos destacados.", fieldErrors: fieldErrorsFrom(parsed.error) };
-    }
-
-    const email = parsed.data.email.toLowerCase();
+export const updateProfile = defineAction({
+  name: "updateProfile",
+  input: profileSchema,
+  async handler({ input, user }) {
+    const email = input.email.toLowerCase();
     if (email !== user.email) {
       const taken = await prisma.user.findUnique({ where: { email }, select: { id: true } });
       if (taken) {
-        return { ok: false, error: "E-mail já utilizado.", fieldErrors: { email: "E-mail já utilizado." } };
+        throw new AppError("CONFLITO", {
+          message: "E-mail já utilizado.",
+          fieldErrors: { email: "E-mail já utilizado." },
+        });
       }
     }
 
     await prisma.user.update({
       where: { id: user.id },
       data: {
-        name: parsed.data.name,
-        role: parsed.data.role || undefined,
+        name: input.name,
+        role: input.role || undefined,
         email,
-        timezone: parsed.data.timezone || undefined,
-        currency: parsed.data.currency,
+        timezone: input.timezone || undefined,
+        currency: input.currency,
       },
     });
 
-    return { ok: true, data: undefined, message: "Preferências salvas." };
-  } catch (error) {
-    console.error(error);
-    return { ok: false, error: "Não foi possível salvar as alterações." };
-  }
-}
+    return undefined;
+  },
+  message: "Preferências salvas.",
+});

@@ -34,6 +34,13 @@ const config = [
     rules: {
       "finora/no-server-module-in-client-component": "error",
 
+      // Prefixo "_" marca o que foi descartado de propósito (desestruturação
+      // que remove um campo, parâmetro exigido pela assinatura).
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" },
+      ],
+
       // Em TypeScript, ler `objeto[chave]` com uma chave tipada é seguro e
       // comum no projeto (mapas de rótulo, Record<Period, number>). A regra
       // acusa todos esses casos e nenhum acesso perigoso de verdade, então o

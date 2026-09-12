@@ -59,7 +59,10 @@ describe("isolamento de lançamentos entre usuários", () => {
     const { intruder, transaction } = await twoUsersWithATransaction();
     signInAs({ id: intruder.user.id, email: intruder.user.email });
 
-    const result = await updateTransaction(transaction.id, payloadFor(intruder.category.id, intruder.account.id));
+    const result = await updateTransaction({
+      id: transaction.id,
+      data: payloadFor(intruder.category.id, intruder.account.id),
+    });
 
     expect(result.ok).toBe(false);
 
@@ -92,7 +95,7 @@ describe("isolamento de lançamentos entre usuários", () => {
   it("sem sessão, nada é lido nem escrito", async () => {
     const { transaction } = await twoUsersWithATransaction();
 
-    await expect(getTransaction(transaction.id)).rejects.toThrow("NAO_AUTENTICADO");
+    await expect(getTransaction(transaction.id)).rejects.toMatchObject({ code: "NAO_AUTENTICADO" });
 
     const result = await deleteTransaction(transaction.id);
     expect(result.ok).toBe(false);

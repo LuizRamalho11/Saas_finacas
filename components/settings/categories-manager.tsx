@@ -210,7 +210,7 @@ function CategoryForm({
     setErrors({});
 
     const payload = { name, type, color, icon: category?.icon ?? "" };
-    const result = category ? await updateCategory(category.id, payload) : await createCategory(payload);
+    const result = category ? await updateCategory({ id: category.id, data: payload }) : await createCategory(payload);
     setSaving(false);
 
     if (!result.ok) {
@@ -339,7 +339,7 @@ function DeleteCategoryDialog({
     }
 
     setDeleting(true);
-    const result = await deleteCategory(category.id, reassignTo || undefined);
+    const result = await deleteCategory({ id: category.id, reassignToId: reassignTo || undefined });
     setDeleting(false);
 
     if (!result.ok) {

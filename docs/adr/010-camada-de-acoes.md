@@ -10,5 +10,12 @@ Cada Server Action repete autenticação e tratamento de erro, e parâmetros de 
 ## Decisão
 Wrapper próprio **`defineAction`** (auth, permissão, Zod, rate limit, auditoria, erros) e regras de negócio em **`lib/services/`**.
 
+## Refinamento (12/09/2026, T1.1)
+O wrapper ficou em três formas, porque as telas consomem dois contratos diferentes:
+`defineAction` (mutações, devolve `ActionResult` para o formulário mostrar erro de campo),
+`defineQuery` (leituras, devolve o dado e lança `AppError`) e `definePublicAction` (login e
+logout, que rodam sem sessão). Todas marcam a função com um símbolo, e um teste de
+integração reprova se algum arquivo `"use server"` exportar função fora do wrapper.
+
 ## Consequências
 Segurança centralizada; actions finas e serviços testáveis isoladamente.

@@ -124,7 +124,8 @@ export function Topbar({ accounts, profile }: TopbarProps) {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <form action={logoutAction}>
+              {/* `logoutAction` devolve ActionResult; o form só precisa dispará-la. */}
+              <form action={() => void logoutAction()}>
                 <button type="submit" className="w-full text-left">
                   Sair da conta
                 </button>

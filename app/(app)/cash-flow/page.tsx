@@ -28,7 +28,7 @@ export default function CashFlowPage() {
   const { period, accountId, setAccountId } = usePeriod();
   const { currency } = usePreferences();
 
-  const flow = useAsync(() => getCashFlow(accountId, period), [accountId, period]);
+  const flow = useAsync(() => getCashFlow({ accountId, period }), [accountId, period]);
   const accounts = useAsync(() => getAccounts(), []);
 
   const points = flow.data ?? [];

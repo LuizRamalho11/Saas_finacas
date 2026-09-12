@@ -2,9 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
+import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { requireUser } from "@/lib/auth/guard";
-import { transactionSchema, fieldErrorsFrom, type ActionResult } from "@/lib/validation";
+import { defineAction } from "@/lib/server/action";
+import { AppError } from "@/lib/server/errors";
+import { idSchema, transactionFilterSchema } from "@/lib/server/schemas";
+import { fieldErrorsFrom, transactionSchema } from "@/lib/validation";
 import { transactionWhereFor } from "@/lib/actions/query-helpers";
 import type { Transaction } from "@/types";
 
@@ -14,198 +17,158 @@ function revalidateAll() {
   for (const path of AFFECTED_PATHS) revalidatePath(path);
 }
 
-/** Traduz falhas conhecidas do banco em mensagens que o usuário entende. */
-function describeError(error: unknown): string {
-  if (error instanceof Error && error.message === "NAO_AUTENTICADO") {
-    return "Sua sessão expirou. Entre novamente para continuar.";
-  }
-  if (error instanceof Prisma.PrismaClientKnownRequestError) {
-    if (error.code === "P2003") return "Categoria ou conta inválida para este usuário.";
-    if (error.code === "P2025") return "Registro não encontrado.";
-  }
-  console.error(error);
-  return "Não foi possível concluir a operação. Tente novamente.";
-}
-
 /**
  * Confere que a categoria e a conta informadas pertencem ao usuário logado.
  * Sem isso um id de outro usuário passado pelo formulário seria aceito.
  */
 async function assertOwnership(userId: string, categoryId: string, accountId: string) {
   const [category, account] = await Promise.all([
-    prisma.category.findFirst({ where: { id: categoryId, userId }, select: { id: true, type: true } }),
+    prisma.category.findFirst({ where: { id: categoryId, userId }, select: { id: true, name: true, type: true } }),
     prisma.account.findFirst({ where: { id: accountId, userId }, select: { id: true } }),
   ]);
-  if (!category) throw new Error("CATEGORIA_INVALIDA");
-  if (!account) throw new Error("CONTA_INVALIDA");
+  if (!category) {
+    throw new AppError("NAO_ENCONTRADO", {
+      message: "Categoria não encontrada.",
+      fieldErrors: { categoryId: "Selecione uma categoria válida." },
+    });
+  }
+  if (!account) {
+    throw new AppError("NAO_ENCONTRADO", {
+      message: "Conta não encontrada.",
+      fieldErrors: { accountId: "Selecione uma conta válida." },
+    });
+  }
   return category;
 }
 
-export async function createTransaction(input: unknown): Promise<ActionResult<{ id: string }>> {
-  try {
-    const user = await requireUser();
-    const parsed = transactionSchema.safeParse(input);
-    if (!parsed.success) {
-      return { ok: false, error: "Revise os campos destacados.", fieldErrors: fieldErrorsFrom(parsed.error) };
-    }
+/** O tipo do lançamento tem de bater com o tipo da categoria escolhida. */
+function assertTypeMatches(categoryType: string, type: "income" | "expense") {
+  if (categoryType === type) return;
+  throw new AppError("DADOS_INVALIDOS", {
+    message: "A categoria escolhida não corresponde ao tipo do lançamento.",
+    fieldErrors: {
+      categoryId: `Selecione uma categoria de ${type === "income" ? "entrada" : "saída"}.`,
+    },
+  });
+}
 
-    const data = parsed.data;
-    const category = await assertOwnership(user.id, data.categoryId, data.accountId);
-    if (category.type !== data.type) {
-      return {
-        ok: false,
-        error: "A categoria escolhida não corresponde ao tipo do lançamento.",
-        fieldErrors: { categoryId: "Selecione uma categoria de " + (data.type === "income" ? "entrada." : "saída.") },
-      };
-    }
+function transactionData(userId: string, input: z.infer<typeof transactionSchema>) {
+  return {
+    userId,
+    accountId: input.accountId,
+    categoryId: input.categoryId,
+    description: input.description,
+    counterparty: input.counterparty || null,
+    amount: new Prisma.Decimal(input.amount.toFixed(2)),
+    type: input.type,
+    status: input.status,
+    method: input.method || null,
+    notes: input.notes || null,
+    date: new Date(`${input.date}T12:00:00.000Z`),
+  };
+}
+
+export const createTransaction = defineAction({
+  name: "createTransaction",
+  input: transactionSchema,
+  async handler({ input, user }) {
+    const category = await assertOwnership(user.id, input.categoryId, input.accountId);
+    assertTypeMatches(category.type, input.type);
 
     const created = await prisma.transaction.create({
-      data: {
-        userId: user.id,
-        accountId: data.accountId,
-        categoryId: data.categoryId,
-        description: data.description,
-        counterparty: data.counterparty || null,
-        amount: new Prisma.Decimal(data.amount.toFixed(2)),
-        type: data.type,
-        status: data.status,
-        method: data.method || null,
-        notes: data.notes || null,
-        date: new Date(`${data.date}T12:00:00.000Z`),
-      },
+      data: transactionData(user.id, input),
       select: { id: true },
     });
 
     revalidateAll();
-    return { ok: true, data: { id: created.id }, message: "Transação criada." };
-  } catch (error) {
-    if (error instanceof Error && error.message === "CATEGORIA_INVALIDA") {
-      return {
-        ok: false,
-        error: "Categoria não encontrada.",
-        fieldErrors: { categoryId: "Selecione uma categoria válida." },
-      };
-    }
-    if (error instanceof Error && error.message === "CONTA_INVALIDA") {
-      return { ok: false, error: "Conta não encontrada.", fieldErrors: { accountId: "Selecione uma conta válida." } };
-    }
-    return { ok: false, error: describeError(error) };
-  }
-}
+    return { id: created.id };
+  },
+  message: "Transação criada.",
+});
 
-export async function updateTransaction(id: string, input: unknown): Promise<ActionResult<{ id: string }>> {
-  try {
-    const user = await requireUser();
-    const parsed = transactionSchema.safeParse(input);
-    if (!parsed.success) {
-      return { ok: false, error: "Revise os campos destacados.", fieldErrors: fieldErrorsFrom(parsed.error) };
-    }
-
-    const data = parsed.data;
+export const updateTransaction = defineAction({
+  name: "updateTransaction",
+  input: z.object({ id: idSchema, data: transactionSchema }),
+  async handler({ input: { id, data }, user }) {
     const category = await assertOwnership(user.id, data.categoryId, data.accountId);
-    if (category.type !== data.type) {
-      return {
-        ok: false,
-        error: "A categoria escolhida não corresponde ao tipo do lançamento.",
-        fieldErrors: { categoryId: "Selecione uma categoria de " + (data.type === "income" ? "entrada." : "saída.") },
-      };
-    }
+    assertTypeMatches(category.type, data.type);
 
     // updateMany com userId no filtro: um id de outro usuário simplesmente não casa.
-    const result = await prisma.transaction.updateMany({
-      where: { id, userId: user.id },
-      data: {
-        accountId: data.accountId,
-        categoryId: data.categoryId,
-        description: data.description,
-        counterparty: data.counterparty || null,
-        amount: new Prisma.Decimal(data.amount.toFixed(2)),
-        type: data.type,
-        status: data.status,
-        method: data.method || null,
-        notes: data.notes || null,
-        date: new Date(`${data.date}T12:00:00.000Z`),
-      },
-    });
+    const { userId: _userId, ...fields } = transactionData(user.id, data);
+    const result = await prisma.transaction.updateMany({ where: { id, userId: user.id }, data: fields });
 
-    if (result.count === 0) return { ok: false, error: "Transação não encontrada." };
+    if (result.count === 0) {
+      throw new AppError("NAO_ENCONTRADO", { message: "Transação não encontrada." });
+    }
 
     revalidateAll();
-    return { ok: true, data: { id }, message: "Transação atualizada." };
-  } catch (error) {
-    return { ok: false, error: describeError(error) };
-  }
-}
+    return { id };
+  },
+  message: "Transação atualizada.",
+});
 
-export async function deleteTransaction(id: string): Promise<ActionResult<{ restore: Transaction | null }>> {
-  try {
-    const user = await requireUser();
-
+export const deleteTransaction = defineAction({
+  name: "deleteTransaction",
+  input: idSchema,
+  async handler({ input: id, user }): Promise<{ restore: Transaction | null }> {
     const existing = await prisma.transaction.findFirst({ where: { id, userId: user.id } });
-    if (!existing) return { ok: false, error: "Transação não encontrada." };
+    if (!existing) throw new AppError("NAO_ENCONTRADO", { message: "Transação não encontrada." });
 
     await prisma.transaction.deleteMany({ where: { id, userId: user.id } });
     revalidateAll();
 
     // Devolve o registro para permitir o "desfazer" do toast.
     return {
-      ok: true,
-      message: "Transação excluída.",
-      data: {
-        restore: {
-          id: existing.id,
-          date: existing.date.toISOString().slice(0, 10),
-          description: existing.description,
-          counterparty: existing.counterparty ?? "",
-          categoryId: existing.categoryId,
-          categoryLabel: "",
-          categoryColor: null,
-          accountId: existing.accountId,
-          accountLabel: "",
-          type: existing.type as Transaction["type"],
-          amount: Number(existing.amount),
-          status: existing.status as Transaction["status"],
-          method: existing.method ?? "",
-          notes: existing.notes,
-          createdAt: existing.createdAt.toISOString(),
-          updatedAt: existing.updatedAt.toISOString(),
-        },
+      restore: {
+        id: existing.id,
+        date: existing.date.toISOString().slice(0, 10),
+        description: existing.description,
+        counterparty: existing.counterparty ?? "",
+        categoryId: existing.categoryId,
+        categoryLabel: "",
+        categoryColor: null,
+        accountId: existing.accountId,
+        accountLabel: "",
+        type: existing.type as Transaction["type"],
+        amount: Number(existing.amount),
+        status: existing.status as Transaction["status"],
+        method: existing.method ?? "",
+        notes: existing.notes,
+        createdAt: existing.createdAt.toISOString(),
+        updatedAt: existing.updatedAt.toISOString(),
       },
     };
-  } catch (error) {
-    return { ok: false, error: describeError(error) };
-  }
-}
+  },
+  message: "Transação excluída.",
+});
 
-/** Recria uma transação excluída, usada pelo "desfazer". */
-export async function restoreTransaction(snapshot: Transaction): Promise<ActionResult<{ id: string }>> {
-  try {
-    const user = await requireUser();
-    await assertOwnership(user.id, snapshot.categoryId, snapshot.accountId);
+/**
+ * Recria uma transação excluída, usada pelo "desfazer".
+ *
+ * O snapshot vem do cliente, então nada dele é confiável: passa pelo mesmo
+ * schema de um lançamento novo e pela mesma checagem de posse.
+ */
+const restoreSchema = transactionSchema.extend({
+  notes: z.string().trim().max(600, "As observações podem ter no máximo 600 caracteres.").nullish(),
+});
+
+export const restoreTransaction = defineAction({
+  name: "restoreTransaction",
+  input: restoreSchema,
+  async handler({ input, user }) {
+    const category = await assertOwnership(user.id, input.categoryId, input.accountId);
+    assertTypeMatches(category.type, input.type);
 
     const created = await prisma.transaction.create({
-      data: {
-        userId: user.id,
-        accountId: snapshot.accountId,
-        categoryId: snapshot.categoryId,
-        description: snapshot.description,
-        counterparty: snapshot.counterparty || null,
-        amount: new Prisma.Decimal(snapshot.amount.toFixed(2)),
-        type: snapshot.type,
-        status: snapshot.status,
-        method: snapshot.method || null,
-        notes: snapshot.notes,
-        date: new Date(`${snapshot.date}T12:00:00.000Z`),
-      },
+      data: transactionData(user.id, { ...input, notes: input.notes ?? undefined }),
       select: { id: true },
     });
 
     revalidateAll();
-    return { ok: true, data: { id: created.id }, message: "Transação restaurada." };
-  } catch (error) {
-    return { ok: false, error: describeError(error) };
-  }
-}
+    return { id: created.id };
+  },
+  message: "Transação restaurada.",
+});
 
 // ------------------------------------------------------------ importação CSV
 
@@ -224,13 +187,37 @@ export interface ImportPreview {
   invalid: { line: number; row: ImportRow; error: string }[];
 }
 
+/** Teto do arquivo importado: acima disso vira extração em massa e trabalho de DoS. */
+const MAX_IMPORT_ROWS = 5_000;
+
+const importRowSchema = z.object({
+  description: z.string().max(300, "Descrição muito longa."),
+  amount: z.string().max(40, "Valor muito longo."),
+  type: z.string().max(40, "Tipo muito longo."),
+  date: z.string().max(40, "Data muito longa."),
+  category: z.string().max(120, "Categoria muito longa."),
+  account: z.string().max(120, "Conta muito longa."),
+  status: z.string().max(40, "Status muito longo.").optional(),
+});
+
+const importRowsSchema = z
+  .array(importRowSchema)
+  .min(1, "Nenhuma linha para importar.")
+  .max(MAX_IMPORT_ROWS, `A importação aceita no máximo ${MAX_IMPORT_ROWS} linhas por arquivo.`);
+
+const previewRowsSchema = z
+  .array(importRowSchema.extend({ categoryId: idSchema, accountId: idSchema, amountValue: z.number() }))
+  .min(1, "Nenhuma linha válida para importar.")
+  .max(MAX_IMPORT_ROWS, `A importação aceita no máximo ${MAX_IMPORT_ROWS} linhas por arquivo.`);
+
 /**
  * Valida as linhas do CSV contra as categorias e contas do usuário, resolvendo
  * os nomes para ids. Nada é gravado aqui — o usuário ainda vai confirmar.
  */
-export async function previewImport(rows: ImportRow[]): Promise<ActionResult<ImportPreview>> {
-  try {
-    const user = await requireUser();
+export const previewImport = defineAction({
+  name: "previewImport",
+  input: importRowsSchema,
+  async handler({ input: rows, user }): Promise<ImportPreview> {
     const [categories, accounts] = await Promise.all([
       prisma.category.findMany({ where: { userId: user.id }, select: { id: true, name: true, type: true } }),
       prisma.account.findMany({ where: { userId: user.id, archived: false }, select: { id: true, name: true } }),
@@ -304,17 +291,14 @@ export async function previewImport(rows: ImportRow[]): Promise<ActionResult<Imp
       });
     });
 
-    return { ok: true, data: preview };
-  } catch (error) {
-    return { ok: false, error: describeError(error) };
-  }
-}
+    return preview;
+  },
+});
 
-export async function confirmImport(rows: ImportPreview["valid"]): Promise<ActionResult<{ count: number }>> {
-  try {
-    const user = await requireUser();
-    if (!rows.length) return { ok: false, error: "Nenhuma linha válida para importar." };
-
+export const confirmImport = defineAction({
+  name: "confirmImport",
+  input: previewRowsSchema,
+  async handler({ input: rows, user }) {
     // Reconferimos a posse: os ids vieram do cliente e não são confiáveis.
     const [categoryIds, accountIds] = await Promise.all([
       prisma.category.findMany({ where: { userId: user.id }, select: { id: true } }),
@@ -337,27 +321,27 @@ export async function confirmImport(rows: ImportPreview["valid"]): Promise<Actio
         notes: "Importado via CSV",
       }));
 
-    if (!data.length) return { ok: false, error: "Nenhuma linha pôde ser importada." };
+    if (!data.length) {
+      throw new AppError("DADOS_INVALIDOS", { message: "Nenhuma linha pôde ser importada." });
+    }
 
     const result = await prisma.transaction.createMany({ data });
     revalidateAll();
-    return { ok: true, data: { count: result.count }, message: `${result.count} transações importadas.` };
-  } catch (error) {
-    return { ok: false, error: describeError(error) };
-  }
-}
+    return { count: result.count };
+  },
+  message: ({ count }) => `${count} transações importadas.`,
+});
 
-/** Exporta o resultado do filtro atual (não só a página visível). */
-export async function exportTransactionsCsv(query: {
-  search?: string;
-  categoryId?: string;
-  status?: string;
-  type?: string;
-  period?: string;
-  accountId?: string;
-}): Promise<ActionResult<{ csv: string; count: number }>> {
-  try {
-    const user = await requireUser();
+/**
+ * Exporta o resultado do filtro atual (não só a página visível).
+ *
+ * É leitura, mas usa `defineAction` porque a tela trata a falha como toast de
+ * erro, e não como tela quebrada.
+ */
+export const exportTransactionsCsv = defineAction({
+  name: "exportTransactionsCsv",
+  input: transactionFilterSchema,
+  async handler({ input: query, user }) {
     const where = transactionWhereFor(user.id, query);
 
     const rows = await prisma.transaction.findMany({
@@ -395,11 +379,6 @@ export async function exportTransactionsCsv(query: {
       ].join(";"),
     );
 
-    return {
-      ok: true,
-      data: { csv: [header.join(";"), ...lines].join("\n"), count: rows.length },
-    };
-  } catch (error) {
-    return { ok: false, error: describeError(error) };
-  }
-}
+    return { csv: [header.join(";"), ...lines].join("\n"), count: rows.length };
+  },
+});
