@@ -37,6 +37,17 @@ const serverSchema = z.object({
   AUTH_TRUST_HOST: booleanFromEnv,
 
   /**
+   * "demo" libera o que só faz sentido numa vitrine: credenciais preenchidas na
+   * tela de login e o aviso de ambiente de demonstração. O padrão é
+   * "production" — se ninguém disser o contrário, nada de demo aparece (F10).
+   */
+  APP_MODE: z.enum(["demo", "production"]).default("production"),
+
+  /** Conta da demonstração. Só é usada quando APP_MODE=demo. */
+  DEMO_EMAIL: z.email({ error: "Informe um e-mail válido." }).default("luiza.andrade@finora.app"),
+  DEMO_PASSWORD: z.string().min(8, "A senha da demonstração precisa ter ao menos 8 caracteres.").optional(),
+
+  /**
    * Como descobrir o IP real de quem chama (F17).
    *
    * "none"     — sem proxy confiável: nenhum cabeçalho é aceito (padrão).

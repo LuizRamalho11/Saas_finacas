@@ -48,4 +48,6 @@ O CI (GitHub Actions) roda lint, formatação, typecheck, testes, build, E2E (no
 - Mudança de comportamento ou setup → atualize `README.md` e `CHANGELOG.md`.
 
 ## Ambiente de demonstração
-Login do seed: `luiza.andrade@finora.app` / `finora2026`. Nunca usar essas credenciais fora de dev (ver T1.7).
+Só existe com `APP_MODE=demo` no `.env`. Nesse modo a tela de login vem preenchida com
+`DEMO_EMAIL`/`DEMO_PASSWORD`; sem ele, o formulário abre vazio e o seed se recusa a rodar.
+A senha da demonstração fica no `.env`, nunca no código.

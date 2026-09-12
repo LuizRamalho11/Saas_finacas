@@ -31,3 +31,16 @@ test("a tela de login continua inteira com os cabeçalhos aplicados", async ({ p
     .evaluate((el) => getComputedStyle(el).backgroundColor);
   expect(cor).not.toBe("rgba(0, 0, 0, 0)");
 });
+
+/**
+ * F10: o formulário vinha com as credenciais do seed preenchidas e anunciando
+ * "ambiente de demonstração" — inclusive num deploy de produção. O servidor de
+ * E2E roda sem APP_MODE, ou seja, em modo produção.
+ */
+test("fora do modo demonstração, o login abre vazio", async ({ page }) => {
+  await page.goto("/login");
+
+  await expect(page.getByLabel("E-mail corporativo")).toHaveValue("");
+  await expect(page.getByLabel("Senha")).toHaveValue("");
+  await expect(page.getByText("Ambiente de demonstração")).toHaveCount(0);
+});

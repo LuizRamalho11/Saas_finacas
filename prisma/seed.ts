@@ -11,6 +11,8 @@ import "dotenv/config";
 import bcrypt from "bcryptjs";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../lib/prisma";
+import { env } from "../lib/env";
+import { assertSeedAllowed, SeedRefused } from "../lib/server/demo";
 import { CATEGORY_COLORS } from "../lib/palette";
 
 const DAY_MS = 86_400_000;
@@ -19,8 +21,8 @@ const FUTURE_DAYS = 12; // lançamentos agendados à frente
 
 const DEMO_USER = {
   name: "Luiza Andrade",
-  email: "luiza.andrade@finora.app",
-  password: "finora2026",
+  // E-mail e senha vêm do ambiente: senha de demonstração não fica no código (F10).
+  email: env.DEMO_EMAIL,
   role: "Head de Finanças",
   company: "Finora Tecnologia Ltda.",
   currency: "BRL",
@@ -140,6 +142,15 @@ const METHODS = ["Pix", "Boleto", "TED", "Cartão corporativo", "Débito automá
 // ---------------------------------------------------------------- seed
 
 async function main() {
+  // O seed cria um usuário de senha conhecida: nunca pode rodar sem querer
+  // contra produção (F10).
+  assertSeedAllowed({
+    nodeEnv: env.NODE_ENV,
+    appMode: env.APP_MODE,
+    demoPassword: env.DEMO_PASSWORD,
+    force: process.argv.includes("--force-demo"),
+  });
+
   console.log("Limpando dados do usuário de demonstração…");
   // O cascade do schema remove contas, categorias, transações, sessões e histórico.
   await prisma.user.deleteMany({ where: { email: DEMO_USER.email } });
@@ -148,7 +159,7 @@ async function main() {
     data: {
       name: DEMO_USER.name,
       email: DEMO_USER.email,
-      passwordHash: await bcrypt.hash(DEMO_USER.password, 10),
+      passwordHash: await bcrypt.hash(env.DEMO_PASSWORD!, 10),
       role: DEMO_USER.role,
       company: DEMO_USER.company,
       currency: DEMO_USER.currency,
@@ -394,7 +405,8 @@ async function main() {
   const cost = Number(expense._sum.amount ?? 0);
 
   console.log("\nSeed concluído:");
-  console.log(`  usuário      ${user.email} / ${DEMO_USER.password}`);
+  // A senha não é impressa: ela está no seu .env (DEMO_PASSWORD).
+  console.log(`  usuário      ${user.email}`);
   console.log(`  contas       ${accounts.length}`);
   console.log(`  categorias   ${categories.length}`);
   console.log(`  transações   ${txCount}`);
@@ -405,7 +417,8 @@ async function main() {
 
 main()
   .catch((error) => {
-    console.error(error);
+    // Recusa por ambiente é decisão nossa, não defeito: mensagem limpa, sem stack.
+    console.error(error instanceof SeedRefused ? error.message : error);
     process.exit(1);
   })
   .finally(() => prisma.$disconnect());

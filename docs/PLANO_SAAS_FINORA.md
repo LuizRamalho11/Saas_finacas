@@ -226,7 +226,7 @@ Formato de cada tarefa: **Por quê** · **Arquivos** · **Passos** · **Aceite**
   4. Exportação: função `csvCell()` que escapa aspas **e** prefixa com `'` valores que começam com `=`, `+`, `-`, `@`, tab ou CR; incluir BOM UTF-8 para acentos no Excel.
 - **Testes:** payload com `amountValue: -999` ou `type` trocado é rejeitado; exportar descrição `=HYPERLINK("x")` sai como `'=HYPERLINK("x")`.
 
-#### - [ ] T1.7 — Separar demonstração de produção
+#### - [x] T1.7 — Separar demonstração de produção *(feito em 12/09/2026)*
 - **Por quê:** F10.
 - **Passos:** `APP_MODE=demo|production` em `lib/env.ts`; credenciais pré-preenchidas e o texto "Ambiente de demonstração" só em `demo`; o seed se recusa a rodar com `NODE_ENV=production` sem flag explícita `--force-demo`; senha do usuário demo vem de env.
 - **Aceite:** em `production`, o formulário abre vazio e o seed aborta.

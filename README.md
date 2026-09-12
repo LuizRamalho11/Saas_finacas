@@ -31,6 +31,8 @@ Login do seed: **luiza.andrade@finora.app** / **finora2026**
 | `AUTH_SECRET` | sim | Assinatura dos tokens de sessão. Gere com `openssl rand -base64 32`. |
 | `AUTH_TRUST_HOST` | em dev/proxy | Deixa o Auth.js confiar no host da requisição (`true` ou `false`). |
 | `APP_URL` | em produção | URL pública do app, usada em redirecionamentos e e-mails. Em dev, o padrão é `http://localhost:3000`. |
+| `APP_MODE` | não | `demo` preenche o login e mostra o aviso de demonstração; padrão `production`. |
+| `DEMO_EMAIL` / `DEMO_PASSWORD` | em modo demo | Conta criada pelo seed. Sem `DEMO_PASSWORD`, o seed aborta. |
 | `TRUSTED_PROXY` | não | Como descobrir o IP real: `none` (padrão), `vercel` ou `last-hop`. |
 | `UPSTASH_REDIS_REST_URL` | em produção | Rate limit compartilhado entre instâncias. Sem ela, o limite vale por instância. |
 | `UPSTASH_REDIS_REST_TOKEN` | em produção | Par da variável acima. |

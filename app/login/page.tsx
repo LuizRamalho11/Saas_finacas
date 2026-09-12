@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { LoginForm } from "@/components/auth/login-form";
+import { demoCredentials } from "@/lib/server/demo";
 import { Logo } from "@/components/layout/logo";
 import { ShieldCheck, TrendingUp, Wallet } from "lucide-react";
 
@@ -70,7 +71,7 @@ export default function LoginPage() {
             <Logo />
           </div>
           <Suspense fallback={<div className="h-80" />}>
-            <LoginForm />
+            <LoginForm demo={demoCredentials()} />
           </Suspense>
         </div>
       </section>

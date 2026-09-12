@@ -9,18 +9,24 @@ import { Label } from "@/components/ui/label";
 import { loginAction } from "@/lib/actions/auth";
 import { safeRedirect } from "@/lib/safe-redirect";
 
-/** Credenciais do usuário criado pelo seed — este é um ambiente de demonstração. */
-const DEMO = { email: "luiza.andrade@finora.app", password: "finora2026" };
+export interface DemoCredentials {
+  email: string;
+  password: string;
+}
 
-export function LoginForm() {
+/**
+ * `demo` só chega preenchido quando o servidor está em APP_MODE=demo (F10).
+ * Em produção o formulário abre vazio e sem aviso de demonstração.
+ */
+export function LoginForm({ demo }: { demo?: DemoCredentials | null }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   // F02: o parâmetro vem da URL, então é do atacante até prova em contrário.
   const redirectTo = safeRedirect(searchParams.get("redirectTo"));
   const expired = searchParams.get("expired") === "1";
 
-  const [email, setEmail] = React.useState(DEMO.email);
-  const [password, setPassword] = React.useState(DEMO.password);
+  const [email, setEmail] = React.useState(demo?.email ?? "");
+  const [password, setPassword] = React.useState(demo?.password ?? "");
   const [error, setError] = React.useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
   const [submitting, setSubmitting] = React.useState(false);
@@ -49,9 +55,13 @@ export function LoginForm() {
     <form onSubmit={handleSubmit} className="space-y-5" noValidate>
       <div className="space-y-1.5">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Entrar na sua conta</h1>
-        <p className="text-sm text-muted-foreground">
-          Ambiente de demonstração — as credenciais do seed já vêm preenchidas.
-        </p>
+        {demo ? (
+          <p className="text-sm text-muted-foreground">
+            Ambiente de demonstração — as credenciais do seed já vêm preenchidas.
+          </p>
+        ) : (
+          <p className="text-sm text-muted-foreground">Entre com o e-mail e a senha da sua conta.</p>
+        )}
       </div>
 
       <div className="space-y-4">
