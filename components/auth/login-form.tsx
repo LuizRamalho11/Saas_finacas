@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { loginAction } from "@/lib/actions/auth";
+import { safeRedirect } from "@/lib/safe-redirect";
 
 /** Credenciais do usuário criado pelo seed — este é um ambiente de demonstração. */
 const DEMO = { email: "luiza.andrade@finora.app", password: "finora2026" };
@@ -14,7 +15,8 @@ const DEMO = { email: "luiza.andrade@finora.app", password: "finora2026" };
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectTo = searchParams.get("redirectTo") ?? "/dashboard";
+  // F02: o parâmetro vem da URL, então é do atacante até prova em contrário.
+  const redirectTo = safeRedirect(searchParams.get("redirectTo"));
   const expired = searchParams.get("expired") === "1";
 
   const [email, setEmail] = React.useState(DEMO.email);

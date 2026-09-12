@@ -52,3 +52,25 @@ test("cookie reaproveitado depois do logout não vale mais", async ({ page, cont
   await expect(page).toHaveURL(/\/login/);
   await expect(page.getByRole("button", { name: "Entrar no painel" })).toBeVisible();
 });
+
+/**
+ * F02: `?redirectTo=//site-malicioso.com` levava o usuário para fora do domínio
+ * logo depois de digitar a senha — o golpe clássico de phishing pós-login.
+ */
+test("redirectTo apontando para fora do domínio cai no dashboard", async ({ page }) => {
+  await page.goto("/login?redirectTo=//site-malicioso.com");
+  await page.getByLabel("E-mail corporativo").fill(E2E_USER.email);
+  await page.getByLabel("Senha").fill(E2E_USER.password);
+  await page.getByRole("button", { name: "Entrar no painel" }).click();
+
+  await expect(page).toHaveURL(/\/dashboard$/);
+});
+
+test("redirectTo interno e conhecido é respeitado", async ({ page }) => {
+  await page.goto("/login?redirectTo=%2Ftransactions");
+  await page.getByLabel("E-mail corporativo").fill(E2E_USER.email);
+  await page.getByLabel("Senha").fill(E2E_USER.password);
+  await page.getByRole("button", { name: "Entrar no painel" }).click();
+
+  await expect(page).toHaveURL(/\/transactions$/);
+});

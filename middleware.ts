@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { safeRedirect } from "@/lib/safe-redirect";
 
 /**
  * Redirecionamento de conveniência apenas.
@@ -18,7 +19,9 @@ export function middleware(request: NextRequest) {
 
   if (!hasSessionCookie && PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
     const loginUrl = new URL("/login", request.url);
-    loginUrl.searchParams.set("redirectTo", pathname);
+    // `pathname` de uma requisição para //site-malicioso.com também começa com
+    // barra dupla: sanitizamos aqui, além de na leitura feita pelo formulário.
+    loginUrl.searchParams.set("redirectTo", safeRedirect(pathname));
     return NextResponse.redirect(loginUrl);
   }
 

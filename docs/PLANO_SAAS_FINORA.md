@@ -193,7 +193,7 @@ Formato de cada tarefa: **Por quê** · **Arquivos** · **Passos** · **Aceite**
 - **Aceite:** após "Encerrar outras sessões", o navegador B é deslogado na próxima ação; após logout, reutilizar o cookie antigo não funciona.
 - **Testes:** integração simulando token com sessão revogada → `NAO_AUTENTICADO`.
 
-#### - [ ] T1.3 — Fechar o open redirect
+#### - [x] T1.3 — Fechar o open redirect *(feito em 12/09/2026)*
 - **Por quê:** F02.
 - **Arquivos:** `lib/safe-redirect.ts`, `components/auth/login-form.tsx`, `middleware.ts`.
 - **Passos:** função `safeRedirect(target, fallback = "/dashboard")` que aceita apenas caminhos relativos começando com uma única `/`, sem `//`, sem `\`, sem esquema, e pertencentes a uma lista de prefixos internos. Usar no formulário e onde mais houver redirecionamento por parâmetro.
