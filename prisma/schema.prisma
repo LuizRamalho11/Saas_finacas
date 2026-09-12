@@ -1,0 +1,131 @@
+// Finora — schema de persistência.
+// Todo dado financeiro pertence a um usuário; nenhuma query roda sem filtro de userId.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String   @default("Head de Finanças")
+  company      String   @default("Finora Tecnologia Ltda.")
+  currency     String   @default("BRL")
+  timezone     String   @default("America/Sao_Paulo")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  accounts     Account[]
+  categories   Category[]
+  transactions Transaction[]
+  sessions     Session[]
+  loginHistory LoginHistory[]
+}
+
+/// Sessão de autenticação. O provider de credenciais do Auth.js usa JWT e não
+/// grava em banco, então esta tabela é mantida pela própria aplicação: o token
+/// carrega o `sessionId` e o logout marca `revokedAt`.
+model Session {
+  id           String    @id @default(cuid())
+  sessionToken String    @unique
+  userId       String
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  createdAt    DateTime  @default(now())
+
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  loginHistory LoginHistory[]
+
+  @@index([userId])
+}
+
+/// Histórico de acessos. Sobrevive ao fim da sessão: nunca é apagado no logout.
+/// `userId` é opcional para que tentativas contra e-mails inexistentes também
+/// fiquem registradas (por isso o `email` bruto também é guardado).
+model LoginHistory {
+  id        String    @id @default(cuid())
+  userId    String?
+  sessionId String?
+  email     String
+  loginAt   DateTime  @default(now())
+  logoutAt  DateTime?
+  ipAddress String?
+  userAgent String?
+  success   Boolean   @default(true)
+  /// Motivo da falha ("credenciais inválidas", "usuário inexistente").
+  reason    String?
+
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session   Session? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([userId, loginAt])
+}
+
+/// Conta financeira do usuário (corrente, poupança, cartão, investimento).
+model Account {
+  id           String   @id @default(cuid())
+  userId       String
+  name         String
+  type         String   @default("checking") // checking | savings | credit_card | investment
+  institution  String?
+  openingBalance Decimal @default(0) @db.Decimal(14, 2)
+  archived     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  type      String // income | expense
+  /// Hex usado nos gráficos; nulo cai na paleta padrão por índice.
+  color     String?
+  icon      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+
+  @@unique([userId, name])
+  @@index([userId, type])
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  userId      String
+  accountId   String
+  categoryId  String
+  description String
+  counterparty String?
+  amount      Decimal  @db.Decimal(12, 2)
+  type        String // income | expense
+  status      String   @default("completed") // pending | completed | canceled
+  method      String?
+  date        DateTime
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account  Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@index([userId, date])
+  @@index([userId, categoryId])
+  @@index([userId, accountId])
+  @@index([userId, status])
+}

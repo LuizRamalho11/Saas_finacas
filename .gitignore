@@ -1,0 +1,25 @@
+# Dependências
+node_modules
+
+# Build e cache
+.next
+.next-e2e
+out
+*.tsbuildinfo
+next-env.d.ts
+
+# Segredos e dados locais — nunca versionar
+.env
+.env*.local
+
+# Bancos locais (desenvolvimento e testes)
+.postgres
+.postgres-test
+
+# Saídas de teste
+coverage
+playwright-report
+test-results
+
+# Sistema operacional
+.DS_Store

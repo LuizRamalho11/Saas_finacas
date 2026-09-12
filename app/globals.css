@@ -1,0 +1,125 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ---- Tema claro ---- */
+    --canvas: 220 33% 97%;
+    --surface: 0 0% 100%;
+    --surface-2: 218 43% 95%;
+    --border: 218 30% 89%;
+    --input: 218 30% 89%;
+    --ring: 224 90% 58%;
+
+    --fg: 222 47% 11%;
+    --fg-muted: 220 22% 41%;
+    --fg-subtle: 220 16% 55%;
+
+    --brand: 224 90% 58%;
+    --brand-fg: 0 0% 100%;
+    --cyan: 189 88% 38%;
+    --violet: 258 76% 58%;
+    --coral: 17 88% 55%;
+    --success: 160 72% 34%;
+    --danger: 351 72% 51%;
+    --warning: 35 95% 36%;
+
+    /* Séries de gráfico — ordem fixa para consistência entre páginas */
+    --chart-1: var(--brand);
+    --chart-2: var(--cyan);
+    --chart-3: var(--violet);
+    --chart-4: var(--coral);
+    --chart-5: 199 89% 48%;
+    --chart-6: 291 64% 52%;
+
+    --radius: 0.75rem;
+    --radius-card: 1rem;
+    --shadow-card: 0 1px 2px hsl(222 47% 11% / 0.04), 0 8px 24px -12px hsl(222 47% 11% / 0.12);
+    --shadow-pop: 0 12px 40px -12px hsl(222 47% 11% / 0.24);
+
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+
+  .dark {
+    /* ---- Tema escuro (padrão do produto) ---- */
+    --canvas: 222 48% 8%;
+    --surface: 222 39% 12%;
+    --surface-2: 223 35% 16%;
+    --border: 223 31% 20%;
+    --input: 223 31% 22%;
+    --ring: 224 100% 65%;
+
+    --fg: 220 48% 94%;
+    --fg-muted: 221 29% 67%;
+    --fg-subtle: 220 16% 52%;
+
+    --brand: 224 100% 65%;
+    --brand-fg: 224 60% 10%;
+    --cyan: 187 92% 53%;
+    --violet: 258 90% 66%;
+    --coral: 17 100% 68%;
+    --success: 160 64% 52%;
+    --danger: 351 95% 71%;
+    --warning: 43 96% 56%;
+
+    --chart-5: 199 95% 62%;
+    --chart-6: 291 80% 68%;
+
+    --shadow-card: 0 1px 0 hsl(220 40% 100% / 0.03) inset, 0 12px 32px -16px hsl(222 60% 2% / 0.9);
+    --shadow-pop: 0 16px 48px -16px hsl(222 60% 2% / 0.95);
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-canvas text-foreground antialiased;
+    font-family: var(--font-sans);
+    font-feature-settings: "cv02", "cv03", "cv04", "tnum" 0;
+  }
+
+  /* Números tabulares deixam KPIs e tabelas alinhados ao trocar de período */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-canvas;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-border;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+@layer components {
+  /* Brilho decorativo do topo da tela, como nas referências */
+  .aurora::before {
+    content: "";
+    position: fixed;
+    inset: -20% 0 auto 0;
+    height: 420px;
+    pointer-events: none;
+    z-index: 0;
+    background:
+      radial-gradient(60% 60% at 50% 0%, hsl(var(--brand) / 0.18), transparent 70%),
+      radial-gradient(40% 50% at 80% 0%, hsl(var(--violet) / 0.12), transparent 70%);
+  }
+}
