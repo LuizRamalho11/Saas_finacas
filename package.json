@@ -55,7 +55,7 @@
     "@eslint/eslintrc": "^3.3.7",
     "@playwright/test": "^1.63.0",
     "@types/bcryptjs": "^2.4.6",
-    "@types/node": "^22.10.0",
+    "@types/node": "^26.5.0",
     "@types/pg": "^8.23.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
